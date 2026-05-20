@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Staff System</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            border: "rgba(226, 232, 240, 0.8)",
+            primary: { DEFAULT: "#4f46e5", foreground: "white" },
+            accent: "#f43f5e",
+            secondary: "#0f172a",
+          },
+          borderRadius: { 'xl': '1rem', '2xl': '1.5rem' },
+          fontFamily: { sans: ['Outfit', 'Sarabun', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    * { font-family: 'Outfit', 'Sarabun', sans-serif; }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-dark {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mesh-bg {
+      background-color: #f8fafc;
+      background-image:
+        radial-gradient(at 20% 20%, rgba(99,102,241,0.08) 0px, transparent 60%),
+        radial-gradient(at 80% 10%, rgba(244,63,94,0.06) 0px, transparent 50%),
+        radial-gradient(at 60% 85%, rgba(79,70,229,0.05) 0px, transparent 55%);
+      min-height: 100vh;
+    }
+
+    .reveal {
+      animation: reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .nav-btn {
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+      color: rgba(255,255,255,0.55);
+    }
+    .nav-btn:hover {
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.9);
+    }
+    .nav-btn.active {
+      background: linear-gradient(to right, rgba(79,70,229,0.25), rgba(79,70,229,0.05));
+      border-left: 3px solid #4f46e5;
+      color: #a5b4fc;
+    }
+
+    .stat-card {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    .badge-purple {
+      background: rgba(79,70,229,0.1);
+      color: #4f46e5;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-gray {
+      background: rgba(100,116,139,0.1);
+      color: #64748b;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+    }
+
+    table th {
+      background: rgba(248,250,252,0.9);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .table-row td { transition: background 0.15s; }
+    .table-row:hover td { background: rgba(79,70,229,0.03); }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(79,70,229,0.25); border-radius: 3px; }
+
+    #sidebar { transition: transform 0.3s cubic-bezier(0.16,1,0.3,1); }
+    #sidebar-overlay { transition: opacity 0.3s; }
+
+    .tooltip {
+      position: relative;
+    }
+    .tooltip:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: white;
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      z-index: 10;
+      max-width: 220px;
+      white-space: normal;
+      text-align: center;
+    }
+
+    .tab-pill {
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.18s;
+      color: #94a3b8;
+    }
+    .tab-pill.active {
+      background: white;
+      color: #4f46e5;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Search highlight */
+    mark.hl {
+      background: rgba(99,102,241,0.15);
+      color: #4338ca;
+      border-radius: 3px;
+      padding: 0 2px;
+      font-weight: 600;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #0f172a;
+      color: white;
+      font-size: 0.8125rem;
+      padding: 8px 18px;
+      border-radius: 999px;
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+      z-index: 999;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Chart toggle btns */
+    .chart-toggle {
+      padding: 4px 12px;
+      border-radius: 7px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      transition: all 0.15s;
+    }
+    .chart-toggle.active {
+      background: white;
+      color: #4f46e5;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Export tabs */
+    .export-tab {
+      color: #94a3b8;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      cursor: pointer;
+      background: none;
+      border-left: none; border-right: none; border-top: none;
+    }
+    .export-tab:hover { color: #475569; }
+    .export-tab.active {
+      color: #4f46e5;
+      border-bottom: 2px solid #4f46e5;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body class="mesh-bg flex">
+
+<!-- ============================================================
+     SIDEBAR OVERLAY (mobile)
+============================================================ -->
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden opacity-0" onclick="toggleSidebar()"></div>
+
+
+<!-- ============================================================
+     SIDEBAR
+============================================================ -->
+<aside id="sidebar" class="glass-dark fixed top-0 left-0 h-full w-64 z-50 flex flex-col
+  -translate-x-full lg:translate-x-0">
+
+  <!-- Brand -->
+  <div class="px-5 py-6 border-b border-white/10">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow">
+        <i data-lucide="shield" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <div class="font-bold text-white text-sm">Admin Panel</div>
+        <div class="text-xs text-white/40">Staff System</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 px-3 py-4 space-y-1">
+    <button onclick="switchTab('dashboard', this)"
+      class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left font-medium"
+      data-tab="dashboard">
+      <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i>
+      <span class="flex-1">สรุปภาพรวม</span>
+      <span id="nav-record-badge" class="hidden text-xs px-1.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-300 font-semibold leading-none"></span>
+    </button>
+    <button onclick="switchTab('activities', this)"
+      class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-left font-medium"
+      data-tab="activities">
+      <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
+      ตั้งค่ากิจกรรม
+    </button>
+  </nav>
+
+  <!-- Bottom link -->
+  <div class="px-3 py-4 border-t border-white/10">
+    <a href="index.html" target="_blank"
+      class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+      <i data-lucide="external-link" class="w-4 h-4 shrink-0"></i>
+      เข้าสู่หน้าบ้าน
+    </a>
+  </div>
+</aside>
+
+
+<!-- ============================================================
+     MAIN CONTENT
+============================================================ -->
+<div class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+
+  <!-- Topbar -->
+  <header class="glass sticky top-0 z-30 px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebar()" class="lg:hidden w-9 h-9 rounded-lg hover:bg-slate-100 flex items-center justify-center transition">
+        <i data-lucide="menu" class="w-5 h-5 text-slate-600"></i>
+      </button>
+      <h1 id="page-title" class="font-semibold text-slate-800">สรุปภาพรวม</h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="loadData(true)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-100 transition tooltip" data-tip="รีเฟรชข้อมูล">
+        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+      </button>
+      <span class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-semibold">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+        Admin Mode
+      </span>
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-violet-600 flex items-center justify-center">
+        <i data-lucide="user" class="w-4 h-4 text-white"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content area -->
+  <main class="flex-1 p-4 sm:p-6">
+
+    <!-- ── TAB: DASHBOARD ─────────────────────────────────── -->
+    <div id="view-dashboard" class="reveal">
+
+      <!-- Metric Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+        <div class="stat-card glass rounded-2xl p-4 shadow-sm">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+              <i data-lucide="database" class="w-5 h-5 text-indigo-600"></i>
+            </div>
+          </div>
+          <div id="stat-total" class="text-2xl font-bold text-slate-800">—</div>
+          <div class="text-xs text-slate-400 mt-0.5">ข้อมูลทั้งหมด</div>
+        </div>
+
+        <div class="stat-card glass rounded-2xl p-4 shadow-sm">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center">
+              <i data-lucide="calendar-check" class="w-5 h-5 text-rose-500"></i>
+            </div>
+          </div>
+          <div id="stat-today" class="text-2xl font-bold text-slate-800">—</div>
+          <div class="text-xs text-slate-400 mt-0.5">ส่งวันนี้</div>
+        </div>
+
+        <div class="stat-card glass rounded-2xl p-4 shadow-sm">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+              <i data-lucide="image" class="w-5 h-5 text-amber-500"></i>
+            </div>
+          </div>
+          <div id="stat-images" class="text-2xl font-bold text-slate-800">—</div>
+          <div class="text-xs text-slate-400 mt-0.5">หลักฐานภาพ</div>
+        </div>
+
+        <div class="stat-card glass rounded-2xl p-4 shadow-sm">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <i data-lucide="trophy" class="w-5 h-5 text-emerald-600"></i>
+            </div>
+          </div>
+          <div id="stat-popular" class="text-sm font-bold text-slate-800 leading-tight">—</div>
+          <div class="text-xs text-slate-400 mt-0.5">กิจกรรมยอดนิยม</div>
+        </div>
+
+      </div>
+
+      <!-- Timeline Chart -->
+      <div class="glass rounded-2xl p-5 mb-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center">
+              <i data-lucide="trending-up" class="w-4 h-4 text-indigo-600"></i>
+            </div>
+            <h2 class="font-semibold text-slate-700 text-sm">Submission Timeline</h2>
+          </div>
+          <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+            <button id="toggle-daily" class="chart-toggle active" onclick="switchChartMode('daily')">รายวัน</button>
+            <button id="toggle-weekly" class="chart-toggle" onclick="switchChartMode('weekly')">รายสัปดาห์</button>
+          </div>
+        </div>
+        <div style="height:180px; position:relative">
+          <canvas id="timeline-chart"></canvas>
+        </div>
+        <div id="chart-empty" class="hidden absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
+          ยังไม่มีข้อมูล
+        </div>
+      </div>
+
+      <!-- Table Controls -->
+      <div class="glass rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-5 py-4 flex flex-col gap-3 border-b border-slate-100">
+
+          <!-- Row 1: title + export -->
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-2">
+              <h2 class="font-semibold text-slate-800">รายการข้อมูลทั้งหมด</h2>
+              <span id="record-count-badge" class="badge-gray">0 รายการ</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <!-- Export dropdown -->
+              <div class="relative" id="export-dropdown-wrap">
+                <button onclick="toggleExportDropdown()"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 transition">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                  Export CSV
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 ml-0.5"></i>
+                </button>
+                <div id="export-dropdown"
+                  class="hidden absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-slate-100 z-20 overflow-hidden"
+                  style="width:300px">
+
+                  <!-- ส่งออกทั้งหมด -->
+                  <button onclick="exportExcel(); closeExportDropdown()"
+                    class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition">
+                    <i data-lucide="table-2" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                    <div class="text-left">
+                      <div class="font-medium">ส่งออกทั้งหมด</div>
+                      <div class="text-xs text-slate-400">ทุก record ที่กำลังแสดงอยู่</div>
+                    </div>
+                  </button>
+
+                  <div class="border-t border-slate-100"></div>
+
+                  <!-- Tab bar -->
+                  <div class="flex border-b border-slate-100 px-2 pt-1.5 gap-1">
+                    <button onclick="switchExportTab('activity')" id="etab-activity"
+                      class="export-tab active text-xs px-3 py-1.5 rounded-t-lg font-medium transition">กิจกรรม</button>
+                    <button onclick="switchExportTab('course')" id="etab-course"
+                      class="export-tab text-xs px-3 py-1.5 rounded-t-lg font-medium transition">วิชา</button>
+                    <button onclick="switchExportTab('teacher')" id="etab-teacher"
+                      class="export-tab text-xs px-3 py-1.5 rounded-t-lg font-medium transition">อาจารย์</button>
+                    <button onclick="switchExportTab('major')" id="etab-major"
+                      class="export-tab text-xs px-3 py-1.5 rounded-t-lg font-medium transition">สาขา</button>
+                  </div>
+
+                  <!-- Tab content -->
+                  <div id="export-activity-list" class="export-tab-pane max-h-52 overflow-y-auto py-1"></div>
+                  <div id="export-course-list"   class="export-tab-pane hidden max-h-52 overflow-y-auto py-1"></div>
+                  <div id="export-teacher-list"  class="export-tab-pane hidden max-h-52 overflow-y-auto py-1"></div>
+                  <div id="export-major-list"    class="export-tab-pane hidden max-h-52 overflow-y-auto py-1"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: filters -->
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="relative flex-1 min-w-[140px]">
+              <i data-lucide="search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none"></i>
+              <input id="search-input" type="text" placeholder="ค้นหาชื่อ, รหัส, เบอร์..." oninput="filterTable()"
+                class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-sm bg-white/70 focus:outline-none focus:border-indigo-400" />
+            </div>
+            <select id="filter-activity" onchange="filterTable()"
+              class="py-1.5 px-2.5 rounded-lg border border-slate-200 text-sm bg-white/70 focus:outline-none focus:border-indigo-400 text-slate-700 min-w-[130px]">
+              <option value="">กิจกรรมทั้งหมด</option>
+            </select>
+            <select id="filter-major" onchange="filterTable()"
+              class="py-1.5 px-2.5 rounded-lg border border-slate-200 text-sm bg-white/70 focus:outline-none focus:border-indigo-400 text-slate-700 min-w-[130px]">
+              <option value="">สาขาทั้งหมด</option>
+              <option>บริหารธุรกิจ (Business Administration)</option>
+              <option>การจัดการธุรกิจการบิน (Airline Business Management)</option>
+              <option>ธุรกิจระหว่างประเทศ (International Business)</option>
+              <option>การบริหารและการจัดการสมัยใหม่ (Modern Management)</option>
+              <option>การตลาดดิจิทัล (Digital Marketing)</option>
+            </select>
+            <input id="filter-date" type="date" onchange="filterTable()"
+              class="py-1.5 px-2.5 rounded-lg border border-slate-200 text-sm bg-white/70 focus:outline-none focus:border-indigo-400 text-slate-600" />
+            <button onclick="clearFilters()"
+              class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-500 text-sm hover:bg-slate-50 transition tooltip" data-tip="ล้างตัวกรองทั้งหมด">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              ล้าง
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead>
+              <tr class="border-b border-slate-100">
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">#</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">ชื่อ-นามสกุล</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">รหัสนักศึกษา</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">กิจกรรม</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">SEC</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">สาขาวิชา</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">เบอร์โทร</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">ข้อมูลวิชา</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">วัน-เวลา</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">สถานที่</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">หลักฐาน</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">เวลาที่ส่ง</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="data-table-body">
+              <tr>
+                <td colspan="13" class="px-4 py-12 text-center text-slate-400">
+                  <i data-lucide="loader-2" class="w-6 h-6 mx-auto mb-2 animate-spin text-indigo-400"></i>
+                  กำลังโหลดข้อมูล...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty state (shown when no records) -->
+        <div id="empty-state" class="hidden px-4 py-16 text-center text-slate-400">
+          <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-3 text-slate-300"></i>
+          <p class="font-medium">ยังไม่มีข้อมูล</p>
+          <p class="text-sm mt-1">ข้อมูลจะแสดงที่นี่เมื่อมีการส่งผลงาน</p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── TAB: ACTIVITIES SETTINGS ───────────────────────── -->
+    <div id="view-activities" class="hidden reveal">
+      <div class="max-w-xl">
+        <div class="glass rounded-2xl p-6 shadow-sm mb-5">
+          <h2 class="font-semibold text-slate-800 mb-4">เพิ่มกิจกรรมใหม่</h2>
+          <div class="flex gap-2">
+            <input id="new-activity-input" type="text" placeholder="ชื่อกิจกรรม"
+              class="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none"
+              onkeydown="if(event.key==='Enter') addActivity()" />
+            <button onclick="addActivity()"
+              class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-medium hover:opacity-90 transition flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              เพิ่ม
+            </button>
+          </div>
+        </div>
+
+        <div class="glass rounded-2xl p-6 shadow-sm">
+          <h2 class="font-semibold text-slate-800 mb-4">รายการกิจกรรม</h2>
+          <ul id="activities-list-admin" class="space-y-2"></ul>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+
+<!-- ============================================================
+     MODAL: Image
+============================================================ -->
+<div id="image-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeImageModal(event)">
+  <div class="relative max-w-2xl w-full" onclick="event.stopPropagation()">
+    <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white/70 hover:text-white transition flex items-center gap-1 text-sm">
+      <i data-lucide="x" class="w-4 h-4"></i> ปิด
+    </button>
+    <img id="modal-image" src="" alt="" class="w-full rounded-2xl shadow-2xl" />
+  </div>
+</div>
+
+
+<!-- ============================================================
+     MODAL: Details
+============================================================ -->
+<div id="details-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeDetailsModal(event)">
+  <div class="glass rounded-2xl p-6 max-w-lg w-full shadow-2xl max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold text-slate-800 text-lg">รายละเอียดเต็ม</h3>
+      <button onclick="closeDetailsModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition">
+        <i data-lucide="x" class="w-4 h-4 text-slate-500"></i>
+      </button>
+    </div>
+    <div id="details-content" class="space-y-3 text-sm"></div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     MODAL: Confirm Delete
+============================================================ -->
+<div id="delete-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="glass rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+    <div class="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-3">
+      <i data-lucide="trash-2" class="w-6 h-6 text-rose-500"></i>
+    </div>
+    <h3 class="font-bold text-slate-800 mb-1">ยืนยันการลบ?</h3>
+    <p class="text-slate-500 text-sm mb-5">ข้อมูลนี้จะถูกลบถาวรและไม่สามารถกู้คืนได้</p>
+    <div class="flex gap-3">
+      <button onclick="closeDeleteModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm hover:bg-slate-50 transition">ยกเลิก</button>
+      <button id="confirm-delete-btn" class="flex-1 py-2.5 rounded-xl bg-rose-500 text-white text-sm font-semibold hover:bg-rose-600 transition">ลบเลย</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SCRIPTS
+============================================================ -->
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────
+const SUPABASE_URL      = 'https://hewzmzpheebheetbalbh.supabase.co';
+const SUPABASE_ANON_KEY = ''; // ← ใส่ anon key ที่นี่
+
+const DEFAULT_ACTIVITIES = [
+  'ปฐมนิเทศนักศึกษา', 'รับน้องใหม่', 'สัมมนาวิชาการ',
+  'ค่ายอาสาพัฒนา', 'แข่งขันกีฬาภายใน', 'กิจกรรมชมรม',
+  'อื่นๆ (โปรดระบุในช่องสถานที่)'
+];
+
+// ─── SUPABASE INIT ────────────────────────────────────────────
+const hasSupabase = SUPABASE_URL && SUPABASE_ANON_KEY;
+let supabaseClient = null;
+if (hasSupabase) {
+  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+// ─── STATE ────────────────────────────────────────────────────
+let allRecords = [];
+
+// ─── SIDEBAR ──────────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar  = document.getElementById('sidebar');
+  const overlay  = document.getElementById('sidebar-overlay');
+  const isOpen   = !sidebar.classList.contains('-translate-x-full');
+
+  if (isOpen) {
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('opacity-0');
+    setTimeout(() => overlay.classList.add('hidden'), 300);
+  } else {
+    overlay.classList.remove('hidden');
+    requestAnimationFrame(() => overlay.classList.remove('opacity-0'));
+    sidebar.classList.remove('-translate-x-full');
+  }
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────────────
+function switchTab(tabId, btnEl) {
+  const tabs = ['dashboard', 'activities'];
+  const titles = { dashboard: 'สรุปภาพรวม', activities: 'ตั้งค่ากิจกรรม' };
+
+  tabs.forEach(t => {
+    document.getElementById(`view-${t}`).classList.add('hidden');
+  });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  const view = document.getElementById(`view-${tabId}`);
+  view.classList.remove('hidden');
+  void view.offsetWidth; // reflow for animation
+  view.classList.add('reveal');
+
+  if (btnEl) btnEl.classList.add('active');
+  document.getElementById('page-title').textContent = titles[tabId] || tabId;
+
+  if (tabId === 'activities') renderActivities();
+
+  // Close sidebar on mobile
+  if (window.innerWidth < 1024) toggleSidebar();
+}
+
+// ─── LOAD DATA ────────────────────────────────────────────────
+async function loadData(isRefresh = false) {
+  const tbody = document.getElementById('data-table-body');
+
+  if (!isRefresh) {
+    tbody.innerHTML = `<tr><td colspan="13" class="px-4 py-12 text-center text-slate-400">
+      <div class="flex flex-col items-center gap-2">
+        <svg class="animate-spin w-6 h-6 text-indigo-400" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        <span>กำลังโหลดข้อมูล...</span>
+      </div>
+    </td></tr>`;
+  }
+
+  try {
+    let records = [];
+
+    if (hasSupabase) {
+      const { data, error } = await supabaseClient
+        .from('staff_records')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      records = data || [];
+    } else {
+      records = JSON.parse(localStorage.getItem('staffSystemDB') || '[]');
+      records.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
+    allRecords = records;
+    updateMetrics(records);
+    renderTable(records);
+  } catch (err) {
+    console.error('Load error:', err);
+    // Fallback to localStorage
+    const records = JSON.parse(localStorage.getItem('staffSystemDB') || '[]');
+    records.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    allRecords = records;
+    updateMetrics(records);
+    renderTable(records);
+    renderChart(records);
+  }
+}
+
+// ─── METRICS ──────────────────────────────────────────────────
+function updateMetrics(records) {
+  document.getElementById('stat-total').textContent = records.length.toLocaleString();
+
+  const today = new Date().toISOString().split('T')[0];
+  const todayCount = records.filter(r => r.created_at && r.created_at.startsWith(today)).length;
+  document.getElementById('stat-today').textContent = todayCount.toLocaleString();
+
+  const imgCount = records.filter(r => r.image && r.image.length > 20).length;
+  document.getElementById('stat-images').textContent = imgCount.toLocaleString();
+
+  // Most popular activity
+  const activityCounts = {};
+  records.forEach(r => {
+    if (r.activity_name) {
+      activityCounts[r.activity_name] = (activityCounts[r.activity_name] || 0) + 1;
+    }
+  });
+  const popular = Object.entries(activityCounts).sort((a, b) => b[1] - a[1])[0];
+  document.getElementById('stat-popular').textContent = popular ? popular[0] : '—';
+
+  // ── Sidebar badge ──────────────────────────────────────────
+  const navBadge = document.getElementById('nav-record-badge');
+  if (navBadge) {
+    navBadge.textContent = records.length.toLocaleString();
+    navBadge.classList.toggle('hidden', records.length === 0);
+  }
+
+  // ── Populate filter dropdowns ──────────────────────────────
+  const actSelect = document.getElementById('filter-activity');
+  const currentAct = actSelect.value;
+  const uniqueActivities = [...new Set(records.map(r => r.activity_name).filter(Boolean))].sort();
+  actSelect.innerHTML = '<option value="">กิจกรรมทั้งหมด</option>' +
+    uniqueActivities.map(a => `<option value="${escHtml(a)}">${escHtml(a)}</option>`).join('');
+  if (currentAct) actSelect.value = currentAct;
+
+  // ── Populate export lists ─────────────────────────────────
+  buildExportList('export-activity-list', 'activity_name', records);
+  buildExportList('export-course-list',   'course_code',   records);
+  buildExportList('export-teacher-list',  'teacher_name',  records);
+  buildExportList('export-major-list',    'major',         records);
+}
+
+// ─── RENDER TABLE ─────────────────────────────────────────────
+function renderTable(records) {
+  const tbody    = document.getElementById('data-table-body');
+  const emptyDiv = document.getElementById('empty-state');
+  const badge    = document.getElementById('record-count-badge');
+
+  badge.textContent = `${records.length} รายการ`;
+
+  if (!records.length) {
+    tbody.innerHTML = '';
+    emptyDiv.classList.remove('hidden');
+    return;
+  }
+  emptyDiv.classList.add('hidden');
+
+  // คำที่กำลังค้นหา (สำหรับ highlight)
+  const q = (document.getElementById('search-input').value || '').toLowerCase().trim();
+
+  // highlight helper
+  const hl = (text) => {
+    if (!q || !text) return escHtml(text || '');
+    const escaped = escHtml(text);
+    const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return escaped.replace(re, '<mark class="hl">$1</mark>');
+  };
+
+  const formatDate = (d) => {
+    if (!d) return '—';
+    try { return new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); }
+    catch { return d; }
+  };
+  const formatDateTime = (dt) => {
+    if (!dt) return '—';
+    try { return new Date(dt).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+    catch { return dt; }
+  };
+
+  tbody.innerHTML = records.map((rec, i) => `
+    <tr class="table-row border-b border-slate-50 last:border-0">
+      <td class="px-4 py-3 text-slate-400 text-xs">#${i + 1}</td>
+      <td class="px-4 py-3 whitespace-nowrap">
+        <div class="font-medium text-slate-800 text-xs leading-tight">${hl(rec.student_name)}</div>
+        ${rec.nickname ? `<div class="text-xs text-slate-400 mt-0.5">(${hl(rec.nickname)})</div>` : ''}
+      </td>
+      <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">${hl(rec.student_id)}</td>
+      <td class="px-4 py-3 whitespace-nowrap"><span class="badge-purple">${hl(rec.activity_name)}</span></td>
+      <td class="px-4 py-3 text-xs text-slate-600">${escHtml(rec.section || '')}</td>
+      <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap max-w-[100px] truncate" title="${escHtml(rec.major || '')}">${hl(rec.major)}</td>
+      <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">${hl(rec.phone)}</td>
+      <td class="px-4 py-3 text-xs text-slate-600">
+        ${rec.course_code ? `<div class="font-medium">${hl(rec.course_code)}</div>` : ''}
+        ${rec.teacher_name ? `<div class="text-slate-400">${hl(rec.teacher_name)}</div>` : '<div class="text-slate-300">—</div>'}
+      </td>
+      <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">
+        <div>${formatDate(rec.date)}</div>
+        <div class="text-slate-400">${escHtml(rec.class_time || '')}</div>
+      </td>
+      <td class="px-4 py-3 text-xs text-slate-600 max-w-[120px]">
+        <div class="truncate" title="${escHtml(rec.location || '')}">${hl(rec.location)}</div>
+      </td>
+      <td class="px-4 py-3">
+        ${rec.image && rec.image.length > 20
+          ? `<button onclick="viewImage('${rec.id}')" class="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition">
+               <i data-lucide="image" class="w-3.5 h-3.5"></i> ดูรูป
+             </button>`
+          : `<span class="text-xs text-slate-300">ไม่มีรูป</span>`
+        }
+      </td>
+      <td class="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">${formatDateTime(rec.created_at)}</td>
+      <td class="px-4 py-3 whitespace-nowrap">
+        <div class="flex items-center gap-1">
+          <button onclick="copyRow('${rec.id}')" class="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center transition tooltip" data-tip="คัดลอก">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          </button>
+          <button onclick="viewDetails('${rec.id}')" class="w-7 h-7 rounded-lg hover:bg-indigo-50 text-indigo-500 flex items-center justify-center transition tooltip" data-tip="รายละเอียด">
+            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+          </button>
+          <button onclick="confirmDelete('${rec.id}')" class="w-7 h-7 rounded-lg hover:bg-rose-50 text-rose-500 flex items-center justify-center transition tooltip" data-tip="ลบ">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  lucide.createIcons();
+}
+
+// ─── SEARCH / FILTER ──────────────────────────────────────────
+function filterTable() {
+  const q           = document.getElementById('search-input').value.toLowerCase().trim();
+  const actFilter   = document.getElementById('filter-activity').value;
+  const majorFilter = document.getElementById('filter-major').value;
+  const dateFilter  = document.getElementById('filter-date').value;
+
+  let filtered = allRecords;
+
+  if (q) {
+    filtered = filtered.filter(r =>
+      [r.student_name, r.student_id, r.nickname, r.activity_name, r.major,
+       r.phone, r.course_code, r.teacher_name, r.location, r.activity_detail]
+        .some(v => v && v.toLowerCase().includes(q))
+    );
+  }
+  if (actFilter)   filtered = filtered.filter(r => r.activity_name === actFilter);
+  if (majorFilter) filtered = filtered.filter(r => r.major && r.major.includes(majorFilter.split(' ')[0]));
+  if (dateFilter)  filtered = filtered.filter(r => r.date === dateFilter);
+
+  renderTable(filtered);
+}
+
+function clearFilters() {
+  document.getElementById('search-input').value  = '';
+  document.getElementById('filter-activity').value = '';
+  document.getElementById('filter-major').value  = '';
+  document.getElementById('filter-date').value   = '';
+  renderTable(allRecords);
+}
+
+// ─── VIEW IMAGE ───────────────────────────────────────────────
+function viewImage(id) {
+  const rec = allRecords.find(r => r.id === id);
+  if (!rec || !rec.image) return;
+  document.getElementById('modal-image').src = rec.image;
+  document.getElementById('image-modal').classList.remove('hidden');
+}
+
+function closeImageModal(e) {
+  if (!e || e.target === document.getElementById('image-modal')) {
+    document.getElementById('image-modal').classList.add('hidden');
+    document.getElementById('modal-image').src = '';
+  }
+}
+
+// ─── VIEW DETAILS ─────────────────────────────────────────────
+function viewDetails(id) {
+  const rec = allRecords.find(r => r.id === id);
+  if (!rec) return;
+
+  const fields = [
+    ['ชื่อ-นามสกุล', rec.student_name],
+    ['ชื่อเล่น', rec.nickname],
+    ['รหัสนักศึกษา', rec.student_id],
+    ['สาขาวิชา', rec.major],
+    ['เบอร์โทร', rec.phone],
+    ['กิจกรรม', rec.activity_name],
+    ['รหัสวิชา', rec.course_code],
+    ['อาจารย์ผู้สอน', rec.teacher_name],
+    ['Section', rec.section],
+    ['วันที่จัดกิจกรรม', rec.date],
+    ['เวลา', rec.class_time],
+    ['รายละเอียดกิจกรรม', rec.activity_detail],
+    ['สถานที่', rec.location],
+    ['เวลาที่บันทึก', rec.created_at ? new Date(rec.created_at).toLocaleString('th-TH') : '—'],
+  ];
+
+  const html = fields.filter(([, v]) => v).map(([label, val]) => `
+    <div class="flex gap-3">
+      <div class="w-28 shrink-0 text-slate-400">${escHtml(label)}</div>
+      <div class="text-slate-800 font-medium flex-1">${escHtml(String(val))}</div>
+    </div>
+  `).join('');
+
+  const hasImg = rec.image && rec.image.length > 20;
+  const imgHtml = hasImg ? `
+    <div class="mt-4 pt-4 border-t border-slate-100">
+      <div class="text-slate-400 text-xs mb-2">หลักฐานภาพ</div>
+      <img src="${rec.image}" alt="หลักฐาน" class="w-full rounded-xl shadow-sm cursor-pointer" onclick="viewImage('${id}')" />
+    </div>` : '';
+
+  document.getElementById('details-content').innerHTML = html + imgHtml;
+  document.getElementById('details-modal').classList.remove('hidden');
+}
+
+function closeDetailsModal(e) {
+  if (!e || e.target === document.getElementById('details-modal')) {
+    document.getElementById('details-modal').classList.add('hidden');
+  }
+}
+
+// ─── DELETE ───────────────────────────────────────────────────
+let pendingDeleteId = null;
+
+function confirmDelete(id) {
+  pendingDeleteId = id;
+  document.getElementById('delete-modal').classList.remove('hidden');
+  document.getElementById('confirm-delete-btn').onclick = () => deleteRecord(id);
+}
+
+function closeDeleteModal() {
+  pendingDeleteId = null;
+  document.getElementById('delete-modal').classList.add('hidden');
+}
+
+async function deleteRecord(id) {
+  closeDeleteModal();
+
+  try {
+    if (hasSupabase) {
+      const { error } = await supabaseClient.from('staff_records').delete().eq('id', id);
+      if (error) throw error;
+    } else {
+      const db = JSON.parse(localStorage.getItem('staffSystemDB') || '[]');
+      const updated = db.filter(r => r.id !== id);
+      localStorage.setItem('staffSystemDB', JSON.stringify(updated));
+    }
+  } catch (err) {
+    console.error('Delete error:', err);
+    // Fallback
+    const db = JSON.parse(localStorage.getItem('staffSystemDB') || '[]');
+    const updated = db.filter(r => r.id !== id);
+    localStorage.setItem('staffSystemDB', JSON.stringify(updated));
+  }
+
+  await loadData(true);
+}
+
+// ─── EXPORT CSV ───────────────────────────────────────────────
+function escapeCsv(val) {
+  const str = val == null ? '' : String(val);
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+function exportExcel(activityFilter = null) {
+  const headers = ['วันที่บันทึกระบบ','ชื่อ-นามสกุล','ชื่อเล่น','รหัสนักศึกษา','สาขา','เบอร์โทร','รหัสวิชา','อาจารย์','กิจกรรม','รายละเอียดกิจกรรม','Section','วันที่ทำกิจกรรม','เวลาเริ่ม-จบ','สถานที่ทำกิจกรรม'];
+
+  // กรองตาม activity ถ้าระบุ
+  const source = activityFilter
+    ? allRecords.filter(r => r.activity_name === activityFilter)
+    : allRecords;
+
+  if (!source.length) { alert('ไม่มีข้อมูลที่จะส่งออก'); return; }
+
+  const rows = source.map(r => [
+    r.created_at ? new Date(r.created_at).toLocaleString('th-TH') : '',
+    r.student_name || '',
+    r.nickname || '',
+    r.student_id || '',
+    r.major || '',
+    r.phone || '',
+    r.course_code || '',
+    r.teacher_name || '',
+    r.activity_name || '',
+    r.activity_detail || '',
+    r.section || '',
+    r.date || '',
+    r.class_time || '',
+    r.location || ''
+  ].map(escapeCsv).join(','));
+
+  const csv  = '﻿' + [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const ts   = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16);
+  const slug = activityFilter ? '_' + activityFilter.replace(/[^ก-๙a-zA-Z0-9]/g, '_').slice(0, 20) : '';
+  a.href     = url;
+  a.download = `staff_records${slug}_${ts}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── EXPORT DROPDOWN ──────────────────────────────────────────
+function toggleExportDropdown() {
+  const dd = document.getElementById('export-dropdown');
+  dd.classList.toggle('hidden');
+  // ปิดเมื่อ click outside
+  if (!dd.classList.contains('hidden')) {
+    setTimeout(() => document.addEventListener('click', closeExportOnOutside, { once: true }), 0);
+  }
+}
+function closeExportDropdown() {
+  document.getElementById('export-dropdown').classList.add('hidden');
+}
+function closeExportOnOutside(e) {
+  if (!document.getElementById('export-dropdown-wrap').contains(e.target)) closeExportDropdown();
+}
+
+// สร้างรายการใน export tab
+function buildExportList(containerId, field, records) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  const counts = {};
+  records.forEach(r => {
+    const val = (r[field] || '').trim();
+    if (val) counts[val] = (counts[val] || 0) + 1;
+  });
+
+  const items = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+  el.innerHTML = items.length
+    ? items.map(([val, cnt]) => `
+        <button onclick="exportByField('${escHtml(field)}','${escHtml(val)}')"
+          class="w-full flex items-center justify-between gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
+          <span class="truncate text-left">${escHtml(val)}</span>
+          <span class="text-xs text-slate-400 shrink-0 font-medium">${cnt} รายการ</span>
+        </button>`).join('')
+    : '<div class="px-4 py-3 text-sm text-slate-400 text-center">ยังไม่มีข้อมูล</div>';
+}
+
+// switch tab ใน export dropdown
+function switchExportTab(tab) {
+  document.querySelectorAll('.export-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.export-tab-pane').forEach(p => p.classList.add('hidden'));
+  document.getElementById(`etab-${tab}`).classList.add('active');
+  document.getElementById(`export-${tab}-list`).classList.remove('hidden');
+}
+
+// export กรองตาม field ที่เลือก
+function exportByField(field, value) {
+  closeExportDropdown();
+  const source = allRecords.filter(r => (r[field] || '').trim() === value);
+  if (!source.length) { alert('ไม่มีข้อมูลที่จะส่งออก'); return; }
+
+  const fieldLabels = { activity_name:'กิจกรรม', course_code:'วิชา', teacher_name:'อาจารย์', major:'สาขา' };
+  const headers = ['วันที่บันทึกระบบ','ชื่อ-นามสกุล','ชื่อเล่น','รหัสนักศึกษา','สาขา','เบอร์โทร','รหัสวิชา','อาจารย์','กิจกรรม','รายละเอียดกิจกรรม','Section','วันที่ทำกิจกรรม','เวลาเริ่ม-จบ','สถานที่ทำกิจกรรม'];
+
+  const rows = source.map(r => [
+    r.created_at ? new Date(r.created_at).toLocaleString('th-TH') : '',
+    r.student_name || '', r.nickname || '', r.student_id || '',
+    r.major || '', r.phone || '', r.course_code || '', r.teacher_name || '',
+    r.activity_name || '', r.activity_detail || '', r.section || '',
+    r.date || '', r.class_time || '', r.location || ''
+  ].map(escapeCsv).join(','));
+
+  const csv  = '﻿' + [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const ts   = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16);
+  const slug = value.replace(/[^ก-๙a-zA-Z0-9]/g, '_').slice(0, 25);
+  const label = fieldLabels[field] || field;
+  a.href     = url;
+  a.download = `staff_${label}_${slug}_${ts}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── ACTIVITIES MANAGEMENT ────────────────────────────────────
+function getActivities() {
+  const saved = localStorage.getItem('activitiesListDB');
+  return saved ? JSON.parse(saved) : [...DEFAULT_ACTIVITIES];
+}
+
+function saveActivities(list) {
+  localStorage.setItem('activitiesListDB', JSON.stringify(list));
+}
+
+function renderActivities() {
+  const list = getActivities();
+  const ul   = document.getElementById('activities-list-admin');
+
+  if (!list.length) {
+    ul.innerHTML = '<li class="text-sm text-slate-400 py-2">ยังไม่มีกิจกรรม</li>';
+    return;
+  }
+
+  ul.innerHTML = list.map((a, i) => `
+    <li class="flex items-center justify-between gap-2 py-2 border-b border-slate-100 last:border-0 group">
+      <span class="text-sm text-slate-700 flex-1">${escHtml(a)}</span>
+      <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+        <button onclick="editActivity(${i})" class="w-7 h-7 rounded-lg hover:bg-indigo-50 text-indigo-400 flex items-center justify-center transition">
+          <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+        </button>
+        <button onclick="deleteActivity(${i})" class="w-7 h-7 rounded-lg hover:bg-rose-50 text-rose-400 flex items-center justify-center transition">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </li>
+  `).join('');
+  lucide.createIcons();
+}
+
+function addActivity() {
+  const input = document.getElementById('new-activity-input');
+  const name  = input.value.trim();
+  if (!name) return;
+
+  const list = getActivities();
+  if (list.includes(name)) {
+    input.style.borderColor = '#f43f5e';
+    setTimeout(() => input.style.borderColor = '', 1500);
+    return;
+  }
+
+  list.push(name);
+  saveActivities(list);
+  input.value = '';
+  renderActivities();
+}
+
+function editActivity(idx) {
+  const list    = getActivities();
+  const newName = prompt('แก้ไขชื่อกิจกรรม:', list[idx]);
+  if (newName === null || !newName.trim()) return;
+  list[idx] = newName.trim();
+  saveActivities(list);
+  renderActivities();
+}
+
+function deleteActivity(idx) {
+  if (!confirm('ลบกิจกรรมนี้?')) return;
+  const list = getActivities();
+  list.splice(idx, 1);
+  saveActivities(list);
+  renderActivities();
+}
+
+// ─── HELPER ───────────────────────────────────────────────────
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ─── TOAST ────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, duration = 2000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ─── COPY ROW ─────────────────────────────────────────────────
+function copyRow(id) {
+  const rec = allRecords.find(r => r.id === id);
+  if (!rec) return;
+  const lines = [
+    `📋 ข้อมูลผลงานกิจกรรม`,
+    `──────────────────`,
+    `👤 ชื่อ: ${rec.student_name || '—'}${rec.nickname ? ` (${rec.nickname})` : ''}`,
+    `🎓 รหัส: ${rec.student_id || '—'}  |  สาขา: ${(rec.major || '—').split(' (')[0]}`,
+    `📞 เบอร์: ${rec.phone || '—'}`,
+    ``,
+    `🎯 กิจกรรม: ${rec.activity_name || '—'}`,
+    rec.course_code ? `📚 วิชา: ${rec.course_code}${rec.teacher_name ? `  |  อ.${rec.teacher_name}` : ''}` : '',
+    `📅 วันที่: ${rec.date || '—'}  |  ${rec.class_time || '—'}`,
+    `📍 สถานที่: ${rec.location || '—'}`,
+    rec.activity_detail ? `📝 รายละเอียด: ${rec.activity_detail}` : '',
+    ``,
+    `🕐 บันทึกเมื่อ: ${rec.created_at ? new Date(rec.created_at).toLocaleString('th-TH') : '—'}`,
+  ].filter(l => l !== null && l !== undefined && !(l === '' && lines)).join('\n');
+
+  navigator.clipboard.writeText(lines)
+    .then(() => showToast('✓ คัดลอกข้อมูลแล้ว'))
+    .catch(() => {
+      // fallback สำหรับ browser เก่า
+      const ta = document.createElement('textarea');
+      ta.value = lines; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('✓ คัดลอกข้อมูลแล้ว');
+    });
+}
+
+// ─── TIMELINE CHART ───────────────────────────────────────────
+let chartInstance = null;
+let chartMode     = 'daily';
+
+function switchChartMode(mode) {
+  chartMode = mode;
+  document.querySelectorAll('.chart-toggle').forEach(b => b.classList.remove('active'));
+  document.getElementById(`toggle-${mode}`).classList.add('active');
+  renderChart(allRecords);
+}
+
+function renderChart(records) {
+  const canvas = document.getElementById('timeline-chart');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  // สร้าง labels + data
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let labels = [], counts = [];
+
+  if (chartMode === 'daily') {
+    // 14 วันย้อนหลัง
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      labels.push(d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }));
+      counts.push(records.filter(r => r.created_at && r.created_at.startsWith(key)).length);
+    }
+  } else {
+    // 8 สัปดาห์ย้อนหลัง
+    for (let i = 7; i >= 0; i--) {
+      const wStart = new Date(today); wStart.setDate(wStart.getDate() - i * 7 - wStart.getDay());
+      const wEnd   = new Date(wStart); wEnd.setDate(wStart.getDate() + 6);
+      labels.push(`${wStart.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}`);
+      counts.push(records.filter(r => {
+        if (!r.created_at) return false;
+        const d = new Date(r.created_at); d.setHours(0,0,0,0);
+        return d >= wStart && d <= wEnd;
+      }).length);
+    }
+  }
+
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+  chartInstance = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'จำนวน submission',
+        data: counts,
+        backgroundColor: counts.map(c =>
+          c === Math.max(...counts) && c > 0
+            ? 'rgba(79,70,229,0.85)'
+            : 'rgba(79,70,229,0.25)'
+        ),
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y} รายการ`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10, family: 'Outfit' }, color: '#94a3b8' }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            font: { size: 10, family: 'Outfit' },
+            color: '#94a3b8',
+            callback: v => Number.isInteger(v) ? v : ''
+          },
+          grid: { color: 'rgba(226,232,240,0.6)' }
+        }
+      }
+    }
+  });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  lucide.createIcons();
+  loadData();
+
+  // Real-time: refetch on window focus
+  window.addEventListener('focus', () => loadData(true));
+
+  // Real-time: sync localStorage between tabs
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'staffSystemDB') loadData(true);
+  });
+});
+</script>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+</body>
+</html>

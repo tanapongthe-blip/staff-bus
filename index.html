@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Registration</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            border: "rgba(226, 232, 240, 0.8)",
+            input:  "rgba(226, 232, 240, 0.8)",
+            primary: { DEFAULT: "#4f46e5", foreground: "white" },
+            accent: "#f43f5e",
+            secondary: "#0f172a",
+          },
+          borderRadius: { 'xl': '1rem', '2xl': '1.5rem' },
+          fontFamily: {
+            sans: ['Outfit', 'Sarabun', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { font-family: 'Outfit', 'Sarabun', sans-serif; }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-dark {
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .mesh-bg {
+      background-color: #f8fafc;
+      background-image:
+        radial-gradient(at 20% 20%, rgba(99,102,241,0.08) 0px, transparent 60%),
+        radial-gradient(at 80% 10%, rgba(244,63,94,0.06) 0px, transparent 50%),
+        radial-gradient(at 60% 85%, rgba(79,70,229,0.05) 0px, transparent 55%);
+      min-height: 100vh;
+    }
+
+    .reveal {
+      animation: reveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+    .shimmer::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%);
+      animation: shimmer 4s infinite;
+    }
+    @keyframes shimmer {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+
+    .shake { animation: shake 0.4s; }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%,60% { transform: translateX(-6px); }
+      40%,80% { transform: translateX(6px); }
+    }
+
+    .nav-btn {
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+    .nav-btn.active {
+      background: linear-gradient(to right, rgba(79,70,229,0.1), transparent);
+      border-left: 3px solid #4f46e5;
+      color: #4f46e5;
+    }
+
+    input, select, textarea {
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #4f46e5 !important;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+    }
+
+    .drop-zone {
+      transition: all 0.2s;
+    }
+    .drop-zone.dragover {
+      border-color: #4f46e5;
+      background: rgba(79,70,229,0.05);
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(79,70,229,0.3); border-radius: 3px; }
+
+    .badge-purple {
+      background: rgba(79,70,229,0.1);
+      color: #4f46e5;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .table-row:hover td { background: rgba(79,70,229,0.03); }
+
+    .tab-btn {
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #64748b;
+    }
+    .tab-btn.active {
+      background: white;
+      color: #4f46e5;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Major radio chips */
+    .major-option { cursor: pointer; display: block; }
+    .major-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      background: rgba(255,255,255,0.6);
+      transition: all 0.18s;
+      user-select: none;
+    }
+    .major-label:hover {
+      border-color: #a5b4fc;
+      background: rgba(79,70,229,0.04);
+    }
+    .major-option input:checked + .major-label {
+      border-color: #4f46e5;
+      background: rgba(79,70,229,0.07);
+    }
+    .major-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid #e2e8f0;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: transparent;
+      transition: all 0.18s;
+    }
+    .major-option input:checked + .major-label .major-check {
+      background: #4f46e5;
+      border-color: #4f46e5;
+      color: white;
+    }
+    .major-text { display: flex; flex-direction: column; gap: 1px; }
+    .major-th { font-size: 0.8125rem; font-weight: 600; color: #1e293b; line-height: 1.3; }
+    .major-en { font-size: 0.7rem; color: #94a3b8; }
+    .major-option input:checked + .major-label .major-th { color: #4338ca; }
+    #major-group.error .major-label { border-color: #fca5a5; background: rgba(244,63,94,0.03); }
+  </style>
+</head>
+
+<body class="mesh-bg">
+
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
+<nav class="glass sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm">
+  <div class="flex items-center gap-3">
+    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow">
+      <i data-lucide="clipboard-list" class="w-5 h-5 text-white"></i>
+    </div>
+    <div>
+      <div class="font-bold text-slate-800 leading-none text-sm sm:text-base">Staff Registration</div>
+      <div class="text-xs text-slate-400 font-light">ระบบบันทึกผลงานกิจกรรม</div>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <button id="nav-register-btn" onclick="showPage('registration')" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition">
+      <i data-lucide="file-plus" class="w-4 h-4"></i>
+      <span class="hidden sm:inline">ลงทะเบียน</span>
+    </button>
+    <button onclick="tryAccessAdmin()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-medium hover:opacity-90 transition shadow-sm">
+      <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+      <span class="hidden sm:inline">Admin Panel</span>
+    </button>
+  </div>
+</nav>
+
+
+<!-- ============================================================
+     PAGE: REGISTRATION FORM
+============================================================ -->
+<div id="page-registration" class="max-w-3xl mx-auto px-4 py-8 reveal">
+  <div class="text-center mb-8">
+    <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">บันทึกผลงานกิจกรรม</h1>
+    <p class="text-slate-500 mt-1 text-sm">กรอกข้อมูลให้ครบถ้วนแล้วกดส่งข้อมูล</p>
+  </div>
+
+  <form id="main-form" onsubmit="handleSubmit(event)" novalidate>
+
+    <!-- Section 1: ข้อมูลส่วนตัว -->
+    <div class="glass rounded-2xl p-6 mb-5 shadow-sm">
+      <div class="flex items-center gap-2 mb-5">
+        <div class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center">
+          <i data-lucide="user" class="w-4 h-4 text-indigo-600"></i>
+        </div>
+        <h2 class="font-semibold text-slate-700">ข้อมูลส่วนตัว</h2>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">ชื่อ-นามสกุล <span class="text-rose-500">*</span></label>
+          <input id="student_name" type="text" required placeholder="ชื่อ นามสกุล"
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">รหัสนักศึกษา <span class="text-rose-500">*</span></label>
+          <input id="student_id" type="text" required placeholder="6XXXXXXXXX"
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">ชื่อเล่น</label>
+          <input id="nickname" type="text" placeholder="ชื่อเล่น"
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">เบอร์โทรศัพท์ <span class="text-rose-500">*</span></label>
+          <input id="phone" type="tel" required placeholder="08X-XXX-XXXX"
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+        </div>
+
+        <div class="sm:col-span-2 flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">สาขาวิชา <span class="text-rose-500">*</span></label>
+          <div id="major-group" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+            <label class="major-option">
+              <input type="radio" name="major" value="บริหารธุรกิจ (Business Administration)" class="sr-only" onchange="onMajorChange(this)" />
+              <span class="major-label">
+                <span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
+                <span class="major-text">
+                  <span class="major-th">บริหารธุรกิจ</span>
+                  <span class="major-en">Business Administration</span>
+                </span>
+              </span>
+            </label>
+            <label class="major-option">
+              <input type="radio" name="major" value="การจัดการธุรกิจการบิน (Airline Business Management)" class="sr-only" onchange="onMajorChange(this)" />
+              <span class="major-label">
+                <span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
+                <span class="major-text">
+                  <span class="major-th">การจัดการธุรกิจการบิน</span>
+                  <span class="major-en">Airline Business Management</span>
+                </span>
+              </span>
+            </label>
+            <label class="major-option">
+              <input type="radio" name="major" value="ธุรกิจระหว่างประเทศ (International Business)" class="sr-only" onchange="onMajorChange(this)" />
+              <span class="major-label">
+                <span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
+                <span class="major-text">
+                  <span class="major-th">ธุรกิจระหว่างประเทศ</span>
+                  <span class="major-en">International Business</span>
+                </span>
+              </span>
+            </label>
+            <label class="major-option">
+              <input type="radio" name="major" value="การบริหารและการจัดการสมัยใหม่ (Modern Management)" class="sr-only" onchange="onMajorChange(this)" />
+              <span class="major-label">
+                <span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
+                <span class="major-text">
+                  <span class="major-th">การบริหารและการจัดการสมัยใหม่</span>
+                  <span class="major-en">Modern Management</span>
+                </span>
+              </span>
+            </label>
+            <label class="major-option sm:col-span-2">
+              <input type="radio" name="major" value="การตลาดดิจิทัล (Digital Marketing)" class="sr-only" onchange="onMajorChange(this)" />
+              <span class="major-label">
+                <span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
+                <span class="major-text">
+                  <span class="major-th">การตลาดดิจิทัล</span>
+                  <span class="major-en">Digital Marketing</span>
+                </span>
+              </span>
+            </label>
+          </div>
+          <div id="major-error" class="hidden text-xs text-rose-500 mt-1">กรุณาเลือกสาขาวิชา</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section 2: ข้อมูลกิจกรรม -->
+    <div class="glass rounded-2xl p-6 mb-5 shadow-sm">
+      <div class="flex items-center gap-2 mb-5">
+        <div class="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center">
+          <i data-lucide="calendar" class="w-4 h-4 text-rose-500"></i>
+        </div>
+        <h2 class="font-semibold text-slate-700">ข้อมูลกิจกรรม</h2>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <div class="sm:col-span-2 flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">ชื่อกิจกรรม <span class="text-rose-500">*</span></label>
+          <input id="activity_name" type="text" required list="activities-list" placeholder="เลือกหรือพิมพ์ชื่อกิจกรรม"
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+          <datalist id="activities-list"></datalist>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">รหัสวิชา</label>
+          <input id="course_code" type="text" placeholder="เช่น CS101"
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">ชื่ออาจารย์</label>
+          <input id="teacher_name" type="text" placeholder="ชื่ออาจารย์ผู้สอน"
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">Section <span class="text-rose-500">*</span></label>
+          <input id="section" type="text" required pattern="[0-9]{3}" maxlength="3" placeholder="001"
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">วันที่จัดกิจกรรม <span class="text-rose-500">*</span></label>
+          <input id="date" type="date" required
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">เวลาเริ่ม <span class="text-rose-500">*</span></label>
+          <input id="time_start" type="time" required
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">เวลาสิ้นสุด <span class="text-rose-500">*</span></label>
+          <input id="time_end" type="time" required
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800" />
+        </div>
+
+        <div class="sm:col-span-2 flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">รายละเอียดกิจกรรม</label>
+          <textarea id="activity_detail" rows="3" placeholder="อธิบายรายละเอียดกิจกรรม เช่น วัตถุประสงค์ สิ่งที่ทำ ผลที่ได้รับ..."
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300 resize-none"></textarea>
+        </div>
+
+        <div class="sm:col-span-2 flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-slate-600">สถานที่จัดกิจกรรม <span class="text-rose-500">*</span></label>
+          <textarea id="location" required rows="2" placeholder="เช่น ห้อง 301 อาคาร A มหาวิทยาลัย..."
+            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300 resize-none"></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section 3: อัปโหลดรูป -->
+    <div class="glass rounded-2xl p-6 mb-6 shadow-sm">
+      <div class="flex items-center gap-2 mb-5">
+        <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">
+          <i data-lucide="image" class="w-4 h-4 text-amber-500"></i>
+        </div>
+        <h2 class="font-semibold text-slate-700">หลักฐานภาพ</h2>
+        <span class="text-xs text-slate-400">(ไม่บังคับ)</span>
+      </div>
+
+      <div id="drop-zone"
+        class="drop-zone border-2 border-dashed border-slate-200 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-300 transition"
+        onclick="document.getElementById('image-input').click()"
+        ondragover="handleDragOver(event)"
+        ondragleave="handleDragLeave(event)"
+        ondrop="handleDrop(event)">
+        <i data-lucide="upload-cloud" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
+        <p class="text-sm text-slate-400">คลิกหรือลากไฟล์รูปมาวางที่นี่</p>
+        <p class="text-xs text-slate-300 mt-1">รองรับ JPG, PNG</p>
+      </div>
+      <input id="image-input" type="file" accept=".jpg,.jpeg,.png" class="hidden" onchange="handleImageSelect(event)" />
+
+      <div id="image-preview-container" class="hidden mt-4">
+        <div class="relative inline-block">
+          <img id="image-preview" src="" alt="Preview" class="max-h-48 rounded-xl shadow-md" />
+          <button type="button" onclick="removeImage()"
+            class="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center hover:bg-rose-600 transition shadow">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+        <div class="flex items-center gap-2 mt-2">
+          <span id="img-size-badge" class="hidden text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium"></span>
+          <span class="text-xs text-slate-400">บีบอัดแล้ว · max 1200px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" id="submit-btn"
+      class="shimmer w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold text-base shadow-md hover:opacity-90 transition flex items-center justify-center gap-2">
+      <i data-lucide="send" class="w-5 h-5"></i>
+      <span>ส่งข้อมูล</span>
+    </button>
+
+  </form>
+</div>
+
+
+<!-- ============================================================
+     PAGE: SUCCESS SCREEN
+============================================================ -->
+<div id="success-screen" class="hidden fixed inset-0 mesh-bg flex items-center justify-center z-30 px-4">
+  <div class="glass rounded-2xl p-10 text-center max-w-sm w-full reveal shadow-xl">
+    <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i data-lucide="check-circle-2" class="w-9 h-9 text-emerald-500"></i>
+    </div>
+    <h2 class="text-xl font-bold text-slate-800 mb-1">ส่งข้อมูลสำเร็จ!</h2>
+    <p class="text-slate-500 text-sm mb-6">ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว</p>
+    <button onclick="resetAndShowForm()"
+      class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold hover:opacity-90 transition">
+      ส่งข้อมูลชุดใหม่
+    </button>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     MODAL: Details
+============================================================ -->
+<div id="details-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeDetailsModal(event)">
+  <div class="glass rounded-2xl p-6 max-w-lg w-full shadow-2xl" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold text-slate-800 text-lg">รายละเอียด</h3>
+      <button onclick="closeDetailsModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition">
+        <i data-lucide="x" class="w-4 h-4 text-slate-500"></i>
+      </button>
+    </div>
+    <div id="details-content" class="space-y-3 text-sm"></div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     MODAL: Image
+============================================================ -->
+<div id="image-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeImageModal(event)">
+  <div class="relative max-w-2xl w-full" onclick="event.stopPropagation()">
+    <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white/70 hover:text-white transition flex items-center gap-1 text-sm">
+      <i data-lucide="x" class="w-4 h-4"></i> ปิด
+    </button>
+    <img id="modal-image" src="" alt="" class="w-full rounded-2xl shadow-2xl" />
+  </div>
+</div>
+
+
+<!-- ============================================================
+     MODAL: Login PIN
+============================================================ -->
+<div id="login-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="glass rounded-2xl p-8 max-w-sm w-full shadow-2xl reveal">
+    <div class="text-center mb-6">
+      <div class="w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
+        <i data-lucide="shield-check" class="w-7 h-7 text-indigo-600"></i>
+      </div>
+      <h3 class="font-bold text-slate-800 text-lg">Admin Access</h3>
+      <p class="text-slate-400 text-sm mt-1">กรอกรหัสผ่านเพื่อเข้าสู่ระบบ</p>
+    </div>
+    <div id="pin-error" class="hidden mb-3 px-3 py-2 bg-rose-50 border border-rose-200 rounded-lg text-sm text-rose-600 text-center">รหัสผ่านไม่ถูกต้อง</div>
+    <input id="pin-input" type="password" placeholder="รหัสผ่าน" maxlength="20"
+      class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-center text-lg tracking-widest mb-4 focus:outline-none focus:border-indigo-400"
+      onkeydown="if(event.key==='Enter') checkPin()" />
+    <div class="flex gap-3">
+      <button onclick="closeLoginModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm hover:bg-slate-50 transition">ยกเลิก</button>
+      <button onclick="checkPin()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-semibold hover:opacity-90 transition">เข้าสู่ระบบ</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SCRIPTS
+============================================================ -->
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────
+const SUPABASE_URL      = 'https://hewzmzpheebheetbalbh.supabase.co';
+const SUPABASE_ANON_KEY = ''; // ← ใส่ anon key ที่นี่
+const ADMIN_PASSWORD    = '1234'; // ← เปลี่ยนรหัสผ่านที่นี่
+
+const DEFAULT_ACTIVITIES = [
+  'ปฐมนิเทศนักศึกษา', 'รับน้องใหม่', 'สัมมนาวิชาการ',
+  'ค่ายอาสาพัฒนา', 'แข่งขันกีฬาภายใน', 'กิจกรรมชมรม',
+  'อื่นๆ (โปรดระบุในช่องสถานที่)'
+];
+
+// ─── SUPABASE INIT ────────────────────────────────────────────
+const hasSupabase = SUPABASE_URL && SUPABASE_ANON_KEY;
+let supabaseClient = null;
+if (hasSupabase) {
+  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+// ─── UTILS ────────────────────────────────────────────────────
+function getActivities() {
+  const saved = localStorage.getItem('activitiesListDB');
+  return saved ? JSON.parse(saved) : [...DEFAULT_ACTIVITIES];
+}
+
+function renderActivityOptions() {
+  const list = document.getElementById('activities-list');
+  if (!list) return;
+  list.innerHTML = '';
+  getActivities().forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a;
+    list.appendChild(opt);
+  });
+}
+
+// ─── IMAGE HANDLING ───────────────────────────────────────────
+let imageBase64 = '';
+const IMG_MAX_SIZE = 1200;   // px ด้านยาวสูงสุด
+const IMG_QUALITY  = 0.75;   // JPEG quality (0-1)
+const IMG_MAX_BYTES = 1.2 * 1024 * 1024; // ~1.2MB หลัง compress
+
+function handleImageSelect(e) {
+  const file = e.target.files[0];
+  if (file) {
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+      alert('รองรับเฉพาะไฟล์ JPG, PNG เท่านั้น'); return;
+    }
+    readImage(file);
+  }
+}
+
+function readImage(file) {
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      // Compress via canvas
+      let w = img.width, h = img.height;
+      if (w > IMG_MAX_SIZE || h > IMG_MAX_SIZE) {
+        if (w > h) { h = Math.round(h * IMG_MAX_SIZE / w); w = IMG_MAX_SIZE; }
+        else        { w = Math.round(w * IMG_MAX_SIZE / h); h = IMG_MAX_SIZE; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', IMG_QUALITY);
+
+      if (compressed.length > IMG_MAX_BYTES * 1.37) { // base64 ~37% overhead
+        alert('ไฟล์รูปใหญ่เกินไปแม้หลังบีบอัด กรุณาใช้รูปที่เล็กกว่านี้');
+        return;
+      }
+      imageBase64 = compressed;
+
+      // แสดง badge ขนาดไฟล์
+      const kb = Math.round(compressed.length * 0.75 / 1024);
+      const sizeBadge = document.getElementById('img-size-badge');
+      if (sizeBadge) { sizeBadge.textContent = `${kb} KB`; sizeBadge.classList.remove('hidden'); }
+
+      document.getElementById('image-preview').src = imageBase64;
+      document.getElementById('drop-zone').classList.add('hidden');
+      document.getElementById('image-preview-container').classList.remove('hidden');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImage() {
+  imageBase64 = '';
+  document.getElementById('image-input').value = '';
+  document.getElementById('image-preview').src = '';
+  document.getElementById('image-preview-container').classList.add('hidden');
+  document.getElementById('drop-zone').classList.remove('hidden');
+  const badge = document.getElementById('img-size-badge');
+  if (badge) { badge.textContent = ''; badge.classList.add('hidden'); }
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.add('dragover');
+}
+
+function handleDragLeave() {
+  document.getElementById('drop-zone').classList.remove('dragover');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+    readImage(file);
+  }
+}
+
+// ─── FORM SUBMIT ──────────────────────────────────────────────
+let isSubmitting = false;
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  if (isSubmitting) return; // ป้องกัน double submit
+
+  const fields = ['student_name','student_id','phone','activity_name','section','date','time_start','time_end','location'];
+  let valid = true;
+
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.required && !el.value.trim()) {
+      el.style.borderColor = '#f43f5e';
+      valid = false;
+    } else if (el) {
+      el.style.borderColor = '';
+    }
+  });
+
+  // Validate major radio
+  const selectedMajor = document.querySelector('input[name="major"]:checked');
+  const majorGroup = document.getElementById('major-group');
+  const majorError = document.getElementById('major-error');
+  if (!selectedMajor) {
+    majorGroup.classList.add('error');
+    majorError.classList.remove('hidden');
+    valid = false;
+  } else {
+    majorGroup.classList.remove('error');
+    majorError.classList.add('hidden');
+  }
+
+  if (!valid) {
+    const firstError = document.querySelector('[style*="border-color: rgb(244, 63, 94)"]') ||
+                       document.querySelector('[style*="#f43f5e"]') ||
+                       majorGroup;
+    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  isSubmitting = true;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.style.opacity = '0.75';
+  btn.innerHTML = '<svg class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>กำลังส่งข้อมูล...';
+
+  const timeStart = document.getElementById('time_start').value;
+  const timeEnd   = document.getElementById('time_end').value;
+
+  const record = {
+    id:            crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+    created_at:    new Date().toISOString(),
+    student_name:  document.getElementById('student_name').value.trim(),
+    student_id:    document.getElementById('student_id').value.trim(),
+    nickname:      document.getElementById('nickname').value.trim(),
+    phone:         document.getElementById('phone').value.trim(),
+    major:         document.querySelector('input[name="major"]:checked')?.value || '',
+    activity_name: document.getElementById('activity_name').value.trim(),
+    course_code:   document.getElementById('course_code').value.trim(),
+    teacher_name:  document.getElementById('teacher_name').value.trim(),
+    section:       document.getElementById('section').value.trim(),
+    date:          document.getElementById('date').value,
+    class_time:        `${timeStart} - ${timeEnd}`,
+    activity_detail:   document.getElementById('activity_detail').value.trim(),
+    location:          document.getElementById('location').value.trim(),
+    image:             imageBase64
+  };
+
+  // Save activity if new
+  const activities = getActivities();
+  if (record.activity_name && !activities.includes(record.activity_name)) {
+    activities.push(record.activity_name);
+    localStorage.setItem('activitiesListDB', JSON.stringify(activities));
+  }
+
+  try {
+    if (hasSupabase) {
+      const { error } = await supabaseClient.from('staff_records').insert([record]);
+      if (error) throw error;
+    } else {
+      // Fallback: localStorage
+      const db = JSON.parse(localStorage.getItem('staffSystemDB') || '[]');
+      db.push(record);
+      localStorage.setItem('staffSystemDB', JSON.stringify(db));
+      // Trigger storage event for other tabs
+      window.dispatchEvent(new StorageEvent('storage', { key: 'staffSystemDB' }));
+    }
+
+    showSuccessScreen();
+  } catch (err) {
+    console.error('Save error:', err);
+    // Fallback to localStorage even if Supabase fails
+    const db = JSON.parse(localStorage.getItem('staffSystemDB') || '[]');
+    db.push(record);
+    localStorage.setItem('staffSystemDB', JSON.stringify(db));
+    showSuccessScreen();
+  }
+
+  isSubmitting = false;
+  btn.disabled = false;
+  btn.style.opacity = '';
+  btn.innerHTML = '<i data-lucide="send" class="w-5 h-5"></i><span>ส่งข้อมูล</span>';
+  lucide.createIcons();
+}
+
+// ─── PAGE CONTROL ─────────────────────────────────────────────
+function showSuccessScreen() {
+  document.getElementById('page-registration').classList.add('hidden');
+  const ss = document.getElementById('success-screen');
+  ss.classList.remove('hidden');
+  ss.classList.add('flex');
+  lucide.createIcons();
+}
+
+function onMajorChange(radio) {
+  document.getElementById('major-group').classList.remove('error');
+  document.getElementById('major-error').classList.add('hidden');
+}
+
+function resetAndShowForm() {
+  document.getElementById('main-form').reset();
+  document.querySelectorAll('input[name="major"]').forEach(r => r.checked = false);
+  document.getElementById('major-group').classList.remove('error');
+  document.getElementById('major-error').classList.add('hidden');
+  removeImage();
+  document.getElementById('success-screen').classList.add('hidden');
+  document.getElementById('success-screen').classList.remove('flex');
+  document.getElementById('page-registration').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showPage(page) {
+  // For now just go to registration
+  document.getElementById('page-registration').classList.remove('hidden');
+}
+
+function goToAdmin() {
+  window.location.href = 'admin.html';
+}
+
+// ─── MODALS ───────────────────────────────────────────────────
+function closeDetailsModal(e) {
+  if (!e || e.target === document.getElementById('details-modal')) {
+    document.getElementById('details-modal').classList.add('hidden');
+  }
+}
+
+function closeImageModal(e) {
+  if (!e || e.target === document.getElementById('image-modal')) {
+    document.getElementById('image-modal').classList.add('hidden');
+    document.getElementById('modal-image').src = '';
+  }
+}
+
+function viewImage(src) {
+  document.getElementById('modal-image').src = src;
+  document.getElementById('image-modal').classList.remove('hidden');
+}
+
+function tryAccessAdmin() {
+  document.getElementById('login-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('pin-input').focus(), 100);
+}
+
+function closeLoginModal() {
+  document.getElementById('login-modal').classList.add('hidden');
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-error').classList.add('hidden');
+}
+
+function checkPin() {
+  const pin = document.getElementById('pin-input').value;
+  if (pin === ADMIN_PASSWORD) {
+    closeLoginModal();
+    window.location.href = 'admin.html';
+  } else {
+    const errEl = document.getElementById('pin-error');
+    errEl.classList.remove('hidden');
+    const pinInput = document.getElementById('pin-input');
+    pinInput.classList.add('shake');
+    setTimeout(() => pinInput.classList.remove('shake'), 500);
+    pinInput.value = '';
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today's date
+  document.getElementById('date').value = new Date().toISOString().split('T')[0];
+  renderActivityOptions();
+  lucide.createIcons();
+});
+</script>
+
+</body>
+</html>
