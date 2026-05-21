@@ -4,209 +4,248 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Staff Registration</title>
-
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Tailwind CSS v3 -->
+  <script src="config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            border: "rgba(226, 232, 240, 0.8)",
-            input:  "rgba(226, 232, 240, 0.8)",
             primary: { DEFAULT: "#4f46e5", foreground: "white" },
             accent: "#f43f5e",
-            secondary: "#0f172a",
           },
-          borderRadius: { 'xl': '1rem', '2xl': '1.5rem' },
-          fontFamily: {
-            sans: ['Outfit', 'Sarabun', 'sans-serif'],
-          }
+          fontFamily: { sans: ['Outfit','Sarabun','sans-serif'] }
         }
       }
     }
   </script>
-
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    * { font-family: 'Outfit', 'Sarabun', sans-serif; }
+    *{font-family:'Outfit','Sarabun',sans-serif;box-sizing:border-box;}
 
-    .glass {
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-    }
-
-    .glass-dark {
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
+    /* ── Background ── */
     .mesh-bg {
-      background-color: #f8fafc;
+      background-color:#f0f4ff;
       background-image:
-        radial-gradient(at 20% 20%, rgba(99,102,241,0.08) 0px, transparent 60%),
-        radial-gradient(at 80% 10%, rgba(244,63,94,0.06) 0px, transparent 50%),
-        radial-gradient(at 60% 85%, rgba(79,70,229,0.05) 0px, transparent 55%);
-      min-height: 100vh;
+        radial-gradient(at 15% 10%, rgba(99,102,241,0.18) 0,transparent 55%),
+        radial-gradient(at 85% 5%,  rgba(244,63,94,0.12)  0,transparent 45%),
+        radial-gradient(at 50% 90%, rgba(124,58,237,0.12) 0,transparent 55%);
+      min-height:100vh;
     }
 
-    .reveal {
-      animation: reveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    /* ── Floating orbs ── */
+    .orb {
+      position:fixed; border-radius:50%; filter:blur(70px);
+      pointer-events:none; z-index:0;
+      animation: floatOrb 8s ease-in-out infinite alternate;
     }
-    @keyframes reveal {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .orb1{width:320px;height:320px;background:rgba(99,102,241,0.12);top:-80px;left:-80px;animation-duration:9s;}
+    .orb2{width:260px;height:260px;background:rgba(244,63,94,0.09);top:30%;right:-60px;animation-duration:11s;animation-delay:-3s;}
+    .orb3{width:200px;height:200px;background:rgba(124,58,237,0.1);bottom:-60px;left:30%;animation-duration:13s;animation-delay:-6s;}
+    @keyframes floatOrb{from{transform:translate(0,0) scale(1);}to{transform:translate(20px,30px) scale(1.08);}}
+
+    /* ── Glass ── */
+    .glass{
+      background:rgba(255,255,255,0.78);
+      backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+      border:1px solid rgba(255,255,255,0.55);
     }
 
-    .shimmer {
-      position: relative;
-      overflow: hidden;
-    }
-    .shimmer::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%);
-      animation: shimmer 4s infinite;
-    }
-    @keyframes shimmer {
-      0%   { transform: translateX(-100%); }
-      100% { transform: translateX(200%); }
+    /* ── Navbar ── */
+    .navbar{
+      background:rgba(255,255,255,0.82);
+      backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(255,255,255,0.5);
     }
 
-    .shake { animation: shake 0.4s; }
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      20%,60% { transform: translateX(-6px); }
-      40%,80% { transform: translateX(6px); }
+    /* ── Step progress ── */
+    .step-line{height:3px;border-radius:999px;background:#e2e8f0;overflow:hidden;}
+    .step-line-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#4f46e5,#7c3aed);transition:width .5s cubic-bezier(.16,1,.3,1);}
+    .step-dot{
+      width:28px;height:28px;border-radius:50%;border:2px solid #e2e8f0;
+      background:white;display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:700;color:#94a3b8;transition:all .4s cubic-bezier(.16,1,.3,1);
+    }
+    .step-dot.done{background:linear-gradient(135deg,#4f46e5,#7c3aed);border-color:#4f46e5;color:white;transform:scale(1.1);}
+    .step-dot.active{border-color:#4f46e5;color:#4f46e5;box-shadow:0 0 0 4px rgba(79,70,229,0.15);}
+    .step-label{font-size:10px;color:#94a3b8;margin-top:4px;font-weight:500;transition:color .3s;}
+    .step-label.active{color:#4f46e5;}
+
+    /* ── Cards stagger ── */
+    .card-in{opacity:0;transform:translateY(24px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1);}
+    .card-in.visible{opacity:1;transform:translateY(0);}
+
+    /* ── Inputs ── */
+    .finput{
+      width:100%;padding:10px 13px;border-radius:12px;
+      border:1.5px solid #e2e8f0;background:rgba(255,255,255,0.7);
+      font-size:13.5px;color:#1e293b;transition:all .2s;
+    }
+    .finput:focus{outline:none;border-color:#4f46e5;background:white;box-shadow:0 0 0 4px rgba(79,70,229,0.1);}
+    .finput::placeholder{color:#cbd5e1;}
+
+    /* ── Major chips ── */
+    .major-option{cursor:pointer;display:block;}
+    .major-label{
+      display:flex;align-items:center;gap:10px;padding:10px 14px;
+      border-radius:12px;border:1.5px solid #e2e8f0;
+      background:rgba(255,255,255,0.6);transition:all .2s;user-select:none;
+    }
+    .major-label:hover{border-color:#a5b4fc;background:rgba(79,70,229,0.04);transform:translateY(-1px);}
+    .major-option input:checked + .major-label{border-color:#4f46e5;background:rgba(79,70,229,0.07);transform:translateY(-1px);}
+    .major-check{
+      width:20px;height:20px;border-radius:6px;border:1.5px solid #e2e8f0;
+      background:white;display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;color:transparent;transition:all .2s;
+    }
+    .major-option input:checked + .major-label .major-check{background:#4f46e5;border-color:#4f46e5;color:white;}
+    .major-text{display:flex;flex-direction:column;gap:1px;}
+    .major-th{font-size:13px;font-weight:600;color:#1e293b;line-height:1.3;}
+    .major-en{font-size:11px;color:#94a3b8;}
+    .major-option input:checked + .major-label .major-th{color:#4338ca;}
+    #major-group.error .major-label,
+    #activity-group.error .major-label{border-color:#fca5a5;}
+
+    /* ── Activity Dropdown ── */
+    .act-dropdown{position:relative;width:100%;}
+    .act-trigger{
+      width:100%;padding:10px 13px;border-radius:12px;
+      border:1.5px solid #e2e8f0;background:rgba(255,255,255,0.7);
+      font-size:13.5px;color:#1e293b;cursor:pointer;
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      transition:all .2s;user-select:none;
+    }
+    .act-trigger:hover{border-color:#a5b4fc;background:rgba(79,70,229,0.04);}
+    .act-trigger.open{border-color:#4f46e5;background:white;box-shadow:0 0 0 4px rgba(79,70,229,0.1);}
+    .act-trigger.selected{border-color:#4f46e5;background:rgba(79,70,229,0.06);}
+    .act-trigger.error{border-color:#fca5a5;}
+    .act-trigger-text{flex:1;color:#94a3b8;}
+    .act-trigger-text.has-val{color:#1e293b;font-weight:600;}
+    .act-arrow{width:16px;height:16px;color:#94a3b8;transition:transform .25s;flex-shrink:0;}
+    .act-trigger.open .act-arrow{transform:rotate(180deg);}
+
+    .act-menu{
+      position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:100;
+      background:white;border:1.5px solid #e2e8f0;border-radius:14px;
+      box-shadow:0 8px 32px rgba(0,0,0,0.12);
+      max-height:260px;overflow-y:auto;
+      display:none;
+      animation:dropIn .2s cubic-bezier(.16,1,.3,1);
+    }
+    .act-menu.open{display:block;}
+    @keyframes dropIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+    .act-option{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 14px;cursor:pointer;transition:background .15s;
+    }
+    .act-option:first-child{border-radius:12px 12px 0 0;}
+    .act-option:last-child{border-radius:0 0 12px 12px;}
+    .act-option:hover{background:#f1f3ff;}
+    .act-option.active{background:rgba(79,70,229,0.07);}
+    .act-opt-check{
+      width:18px;height:18px;border-radius:5px;border:1.5px solid #e2e8f0;
+      background:white;display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;color:transparent;transition:all .15s;
+    }
+    .act-option.active .act-opt-check{background:#4f46e5;border-color:#4f46e5;color:white;}
+    .act-opt-label{font-size:13.5px;font-weight:500;color:#1e293b;}
+
+    /* ── Drop zone ── */
+    .drop-zone{border:2px dashed #e2e8f0;border-radius:14px;transition:all .2s;}
+    .drop-zone:hover,.drop-zone.dragover{border-color:#4f46e5;background:rgba(79,70,229,0.04);}
+
+    /* ── Submit button ── */
+    .submit-btn{
+      position:relative;overflow:hidden;width:100%;padding:14px;
+      border-radius:14px;background:linear-gradient(135deg,#4f46e5,#7c3aed);
+      color:white;font-size:15px;font-weight:700;border:none;cursor:pointer;
+      transition:all .25s;box-shadow:0 4px 20px rgba(79,70,229,0.35);
+      display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(79,70,229,0.45);}
+    .submit-btn:active:not(:disabled){transform:scale(0.98);}
+    .submit-btn::before{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.28) 50%,transparent 60%);
+      animation:shimmer 3.5s infinite;
+    }
+    @keyframes shimmer{0%{transform:translateX(-100%);}100%{transform:translateX(200%);}}
+
+    /* Ripple */
+    .ripple{
+      position:absolute;border-radius:50%;background:rgba(255,255,255,.35);
+      transform:scale(0);animation:rippleAnim .55s linear;pointer-events:none;
+    }
+    @keyframes rippleAnim{to{transform:scale(4);opacity:0;}}
+
+    /* ── Shake / reveal ── */
+    .shake{animation:shake .4s;}
+    @keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
+
+    /* ── Success screen ── */
+    #success-screen{background:rgba(248,250,255,.97);}
+    .success-icon{
+      animation:successPop .6s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes successPop{
+      0%{transform:scale(0) rotate(-15deg);opacity:0;}
+      70%{transform:scale(1.15) rotate(3deg);}
+      100%{transform:scale(1) rotate(0);opacity:1;}
     }
 
-    .nav-btn {
-      transition: all 0.2s;
-      border-left: 3px solid transparent;
+    /* Confetti */
+    .confetti-piece{
+      position:absolute;width:8px;height:8px;border-radius:2px;
+      animation:confettiFall 1.2s ease-in forwards;
     }
-    .nav-btn.active {
-      background: linear-gradient(to right, rgba(79,70,229,0.1), transparent);
-      border-left: 3px solid #4f46e5;
-      color: #4f46e5;
-    }
-
-    input, select, textarea {
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: #4f46e5 !important;
-      box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+    @keyframes confettiFall{
+      0%{transform:translateY(-20px) rotate(0deg);opacity:1;}
+      100%{transform:translateY(260px) rotate(540deg);opacity:0;}
     }
 
-    .drop-zone {
-      transition: all 0.2s;
+    /* ── Section icon badge ── */
+    .section-badge{
+      width:30px;height:30px;border-radius:9px;
+      display:flex;align-items:center;justify-content:center;
+      transition:transform .2s;
     }
-    .drop-zone.dragover {
-      border-color: #4f46e5;
-      background: rgba(79,70,229,0.05);
+    .card-in.visible .section-badge{animation:badgePop .5s .2s cubic-bezier(.16,1,.3,1) both;}
+    @keyframes badgePop{0%{transform:scale(0);}70%{transform:scale(1.2);}100%{transform:scale(1);}}
+
+    /* ── Image badge ── */
+    .img-size-badge{
+      display:inline-flex;align-items:center;gap:4px;
+      background:linear-gradient(135deg,#d1fae5,#a7f3d0);
+      color:#065f46;padding:2px 10px;border-radius:999px;
+      font-size:11px;font-weight:600;
     }
 
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(79,70,229,0.3); border-radius: 3px; }
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar{width:5px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:rgba(79,70,229,.25);border-radius:3px;}
 
-    .badge-purple {
-      background: rgba(79,70,229,0.1);
-      color: #4f46e5;
-      padding: 2px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .table-row:hover td { background: rgba(79,70,229,0.03); }
-
-    .tab-btn {
-      padding: 8px 20px;
-      border-radius: 8px;
-      font-weight: 500;
-      font-size: 0.875rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: #64748b;
-    }
-    .tab-btn.active {
-      background: white;
-      color: #4f46e5;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-
-    /* Major radio chips */
-    .major-option { cursor: pointer; display: block; }
-    .major-label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1.5px solid #e2e8f0;
-      background: rgba(255,255,255,0.6);
-      transition: all 0.18s;
-      user-select: none;
-    }
-    .major-label:hover {
-      border-color: #a5b4fc;
-      background: rgba(79,70,229,0.04);
-    }
-    .major-option input:checked + .major-label {
-      border-color: #4f46e5;
-      background: rgba(79,70,229,0.07);
-    }
-    .major-check {
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
-      border: 1.5px solid #e2e8f0;
-      background: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      color: transparent;
-      transition: all 0.18s;
-    }
-    .major-option input:checked + .major-label .major-check {
-      background: #4f46e5;
-      border-color: #4f46e5;
-      color: white;
-    }
-    .major-text { display: flex; flex-direction: column; gap: 1px; }
-    .major-th { font-size: 0.8125rem; font-weight: 600; color: #1e293b; line-height: 1.3; }
-    .major-en { font-size: 0.7rem; color: #94a3b8; }
-    .major-option input:checked + .major-label .major-th { color: #4338ca; }
-    #major-group.error .major-label { border-color: #fca5a5; background: rgba(244,63,94,0.03); }
+    /* z-index fix */
+    nav,form,#page-registration,#success-screen{position:relative;z-index:1;}
   </style>
 </head>
 
-<body class="mesh-bg">
+<body class="mesh-bg overflow-x-hidden">
 
-<!-- ============================================================
-     NAVBAR
-============================================================ -->
-<nav class="glass sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm">
+<!-- Floating orbs -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- ── NAVBAR ─────────────────────────────────────────────── -->
+<nav class="navbar sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm">
   <div class="flex items-center gap-3">
-    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow">
+    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md" style="animation:badgePop .6s cubic-bezier(.16,1,.3,1) both">
       <i data-lucide="clipboard-list" class="w-5 h-5 text-white"></i>
     </div>
     <div>
@@ -214,294 +253,249 @@
       <div class="text-xs text-slate-400 font-light">ระบบบันทึกผลงานกิจกรรม</div>
     </div>
   </div>
-  <div class="flex items-center gap-2">
-    <button id="nav-register-btn" onclick="showPage('registration')" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition">
-      <i data-lucide="file-plus" class="w-4 h-4"></i>
-      <span class="hidden sm:inline">ลงทะเบียน</span>
-    </button>
-    <button onclick="tryAccessAdmin()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-medium hover:opacity-90 transition shadow-sm">
-      <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-      <span class="hidden sm:inline">Admin Panel</span>
-    </button>
-  </div>
+  <button onclick="tryAccessAdmin()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-semibold hover:opacity-90 transition shadow-sm">
+    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+    <span class="hidden sm:inline">Admin Panel</span>
+  </button>
 </nav>
 
+<!-- ── PAGE: REGISTRATION ─────────────────────────────────── -->
+<div id="page-registration" class="max-w-2xl mx-auto px-4 py-8">
 
-<!-- ============================================================
-     PAGE: REGISTRATION FORM
-============================================================ -->
-<div id="page-registration" class="max-w-3xl mx-auto px-4 py-8 reveal">
-  <div class="text-center mb-8">
-    <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">บันทึกผลงานกิจกรรม</h1>
-    <p class="text-slate-500 mt-1 text-sm">กรอกข้อมูลให้ครบถ้วนแล้วกดส่งข้อมูล</p>
+  <!-- Hero -->
+  <div class="text-center mb-7" style="animation:fadeUp .7s cubic-bezier(.16,1,.3,1) both">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-semibold mb-3 border border-indigo-100">
+      <i data-lucide="sparkles" class="w-3 h-3"></i> บันทึกผลงานกิจกรรม
+    </div>
+    <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 leading-tight">กรอกข้อมูลให้ครบถ้วน</h1>
+    <p class="text-slate-500 mt-1.5 text-sm">แล้วกดส่งข้อมูลด้านล่าง</p>
+  </div>
+
+  <!-- Step Progress -->
+  <div class="glass rounded-2xl px-5 py-4 mb-6 shadow-sm" style="animation:fadeUp .7s .1s cubic-bezier(.16,1,.3,1) both">
+    <div class="flex items-center gap-2">
+      <!-- Step 1 -->
+      <div class="flex flex-col items-center">
+        <div id="sdot1" class="step-dot active">1</div>
+        <span id="slabel1" class="step-label active">ข้อมูลส่วนตัว</span>
+      </div>
+      <div class="flex-1 step-line"><div id="sline1" class="step-line-fill" style="width:0%"></div></div>
+      <!-- Step 2 -->
+      <div class="flex flex-col items-center">
+        <div id="sdot2" class="step-dot">2</div>
+        <span id="slabel2" class="step-label">กิจกรรม</span>
+      </div>
+      <div class="flex-1 step-line"><div id="sline2" class="step-line-fill" style="width:0%"></div></div>
+      <!-- Step 3 -->
+      <div class="flex flex-col items-center">
+        <div id="sdot3" class="step-dot">3</div>
+        <span id="slabel3" class="step-label">หลักฐานภาพ</span>
+      </div>
+    </div>
   </div>
 
   <form id="main-form" onsubmit="handleSubmit(event)" novalidate>
 
-    <!-- Section 1: ข้อมูลส่วนตัว -->
-    <div class="glass rounded-2xl p-6 mb-5 shadow-sm">
-      <div class="flex items-center gap-2 mb-5">
-        <div class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center">
+    <!-- ── Section 1: ข้อมูลส่วนตัว ── -->
+    <div class="glass rounded-2xl p-6 mb-5 shadow-sm card-in" id="sec1">
+      <div class="flex items-center gap-2.5 mb-5">
+        <div class="section-badge bg-indigo-100">
           <i data-lucide="user" class="w-4 h-4 text-indigo-600"></i>
         </div>
-        <h2 class="font-semibold text-slate-700">ข้อมูลส่วนตัว</h2>
+        <div>
+          <h2 class="font-bold text-slate-800 text-sm">ข้อมูลส่วนตัว</h2>
+          <p class="text-xs text-slate-400">Personal Information</p>
+        </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">ชื่อ-นามสกุล <span class="text-rose-500">*</span></label>
-          <input id="student_name" type="text" required placeholder="ชื่อ นามสกุล"
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">ชื่อ-นามสกุล <span class="text-rose-400">*</span></label>
+          <input id="student_name" type="text" required placeholder="ชื่อ นามสกุล" class="finput" />
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">รหัสนักศึกษา <span class="text-rose-500">*</span></label>
-          <input id="student_id" type="text" required placeholder="6XXXXXXXXX"
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">รหัสนักศึกษา <span class="text-rose-400">*</span></label>
+          <input id="student_id" type="text" required placeholder="6XXXXXXXXX" class="finput" />
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">ชื่อเล่น</label>
-          <input id="nickname" type="text" placeholder="ชื่อเล่น"
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">ชื่อเล่น</label>
+          <input id="nickname" type="text" placeholder="ชื่อเล่น" class="finput" />
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">เบอร์โทรศัพท์ <span class="text-rose-500">*</span></label>
-          <input id="phone" type="tel" required placeholder="08X-XXX-XXXX"
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">เบอร์โทรศัพท์ <span class="text-rose-400">*</span></label>
+          <input id="phone" type="tel" required placeholder="08X-XXX-XXXX" class="finput" />
         </div>
-
         <div class="sm:col-span-2 flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">สาขาวิชา <span class="text-rose-500">*</span></label>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">สาขาวิชา <span class="text-rose-400">*</span></label>
           <div id="major-group" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
             <label class="major-option">
-              <input type="radio" name="major" value="บริหารธุรกิจ (Business Administration)" class="sr-only" onchange="onMajorChange(this)" />
-              <span class="major-label">
-                <span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
-                <span class="major-text">
-                  <span class="major-th">บริหารธุรกิจ</span>
-                  <span class="major-en">Business Administration</span>
-                </span>
-              </span>
+              <input type="radio" name="major" value="บริหารธุรกิจ" class="sr-only" onchange="onMajorChange()" />
+              <span class="major-label"><span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span class="major-text"><span class="major-th">บริหารธุรกิจ</span><span class="major-en">Business Administration</span></span></span>
             </label>
             <label class="major-option">
-              <input type="radio" name="major" value="การจัดการธุรกิจการบิน (Airline Business Management)" class="sr-only" onchange="onMajorChange(this)" />
-              <span class="major-label">
-                <span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
-                <span class="major-text">
-                  <span class="major-th">การจัดการธุรกิจการบิน</span>
-                  <span class="major-en">Airline Business Management</span>
-                </span>
-              </span>
+              <input type="radio" name="major" value="การจัดการธุรกิจการบิน" class="sr-only" onchange="onMajorChange()" />
+              <span class="major-label"><span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span class="major-text"><span class="major-th">การจัดการธุรกิจการบิน</span><span class="major-en">Airline Business Management</span></span></span>
             </label>
             <label class="major-option">
-              <input type="radio" name="major" value="ธุรกิจระหว่างประเทศ (International Business)" class="sr-only" onchange="onMajorChange(this)" />
-              <span class="major-label">
-                <span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
-                <span class="major-text">
-                  <span class="major-th">ธุรกิจระหว่างประเทศ</span>
-                  <span class="major-en">International Business</span>
-                </span>
-              </span>
+              <input type="radio" name="major" value="ธุรกิจระหว่างประเทศ" class="sr-only" onchange="onMajorChange()" />
+              <span class="major-label"><span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span class="major-text"><span class="major-th">ธุรกิจระหว่างประเทศ</span><span class="major-en">International Business</span></span></span>
             </label>
             <label class="major-option">
-              <input type="radio" name="major" value="การบริหารและการจัดการสมัยใหม่ (Modern Management)" class="sr-only" onchange="onMajorChange(this)" />
-              <span class="major-label">
-                <span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
-                <span class="major-text">
-                  <span class="major-th">การบริหารและการจัดการสมัยใหม่</span>
-                  <span class="major-en">Modern Management</span>
-                </span>
-              </span>
+              <input type="radio" name="major" value="การบริหารและการจัดการสมัยใหม่" class="sr-only" onchange="onMajorChange()" />
+              <span class="major-label"><span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span class="major-text"><span class="major-th">การบริหารและการจัดการสมัยใหม่</span><span class="major-en">Modern Management</span></span></span>
             </label>
             <label class="major-option sm:col-span-2">
-              <input type="radio" name="major" value="การตลาดดิจิทัล (Digital Marketing)" class="sr-only" onchange="onMajorChange(this)" />
-              <span class="major-label">
-                <span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span>
-                <span class="major-text">
-                  <span class="major-th">การตลาดดิจิทัล</span>
-                  <span class="major-en">Digital Marketing</span>
-                </span>
-              </span>
+              <input type="radio" name="major" value="การตลาดดิจิทัล" class="sr-only" onchange="onMajorChange()" />
+              <span class="major-label"><span class="major-check"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span class="major-text"><span class="major-th">การตลาดดิจิทัล</span><span class="major-en">Digital Marketing</span></span></span>
             </label>
           </div>
           <div id="major-error" class="hidden text-xs text-rose-500 mt-1">กรุณาเลือกสาขาวิชา</div>
         </div>
-
       </div>
     </div>
 
-    <!-- Section 2: ข้อมูลกิจกรรม -->
-    <div class="glass rounded-2xl p-6 mb-5 shadow-sm">
-      <div class="flex items-center gap-2 mb-5">
-        <div class="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center">
+    <!-- ── Section 2: ข้อมูลกิจกรรม ── -->
+    <div class="glass rounded-2xl p-6 mb-5 shadow-sm card-in" id="sec2" style="transition-delay:.08s">
+      <div class="flex items-center gap-2.5 mb-5">
+        <div class="section-badge bg-rose-100">
           <i data-lucide="calendar" class="w-4 h-4 text-rose-500"></i>
         </div>
-        <h2 class="font-semibold text-slate-700">ข้อมูลกิจกรรม</h2>
+        <div>
+          <h2 class="font-bold text-slate-800 text-sm">ข้อมูลกิจกรรม</h2>
+          <p class="text-xs text-slate-400">Activity Information</p>
+        </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
         <div class="sm:col-span-2 flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">ชื่อกิจกรรม <span class="text-rose-500">*</span></label>
-          <input id="activity_name" type="text" required list="activities-list" placeholder="เลือกหรือพิมพ์ชื่อกิจกรรม"
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
-          <datalist id="activities-list"></datalist>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">ชื่อกิจกรรม <span class="text-rose-400">*</span></label>
+          <div class="act-dropdown" id="activity-dropdown">
+            <div class="act-trigger" id="act-trigger" onclick="toggleActDropdown()">
+              <span class="act-trigger-text" id="act-trigger-text">เลือกกิจกรรม...</span>
+              <svg class="act-arrow" id="act-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="act-menu" id="act-menu"></div>
+          </div>
+          <input type="hidden" id="activity_name_val" name="activity_name_val" />
+          <p id="activity-error" class="hidden text-xs text-rose-500 mt-1">กรุณาเลือกกิจกรรม</p>
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">รหัสวิชา</label>
-          <input id="course_code" type="text" placeholder="เช่น CS101"
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">รหัสวิชา <span class="text-rose-400">*</span></label>
+          <input id="course_code" type="text" required placeholder="เช่น CS101" class="finput" />
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">ชื่ออาจารย์</label>
-          <input id="teacher_name" type="text" placeholder="ชื่ออาจารย์ผู้สอน"
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">ชื่ออาจารย์ <span class="text-rose-400">*</span></label>
+          <input id="teacher_name" type="text" required placeholder="ชื่ออาจารย์ผู้สอน" class="finput" />
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">Section <span class="text-rose-500">*</span></label>
-          <input id="section" type="text" required pattern="[0-9]{3}" maxlength="3" placeholder="001"
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Section <span class="text-rose-400">*</span></label>
+          <input id="section" type="text" required pattern="[0-9]{3}" maxlength="3" placeholder="001" class="finput" />
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">วันที่จัดกิจกรรม <span class="text-rose-500">*</span></label>
-          <input id="date" type="date" required
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">วันที่จัดกิจกรรม <span class="text-rose-400">*</span></label>
+          <input id="date" type="date" required class="finput" />
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">เวลาเริ่ม <span class="text-rose-500">*</span></label>
-          <input id="time_start" type="time" required
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">เวลาเริ่ม <span class="text-rose-400">*</span></label>
+          <input id="time_start" type="time" required class="finput" />
         </div>
-
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">เวลาสิ้นสุด <span class="text-rose-500">*</span></label>
-          <input id="time_end" type="time" required
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800" />
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">เวลาสิ้นสุด <span class="text-rose-400">*</span></label>
+          <input id="time_end" type="time" required class="finput" />
         </div>
-
         <div class="sm:col-span-2 flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">รายละเอียดกิจกรรม</label>
-          <textarea id="activity_detail" rows="3" placeholder="อธิบายรายละเอียดกิจกรรม เช่น วัตถุประสงค์ สิ่งที่ทำ ผลที่ได้รับ..."
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300 resize-none"></textarea>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">รายละเอียดกิจกรรม</label>
+          <textarea id="activity_detail" rows="3" placeholder="อธิบายรายละเอียดกิจกรรม เช่น วัตถุประสงค์ สิ่งที่ทำ ผลที่ได้รับ..." class="finput" style="resize:none"></textarea>
         </div>
-
         <div class="sm:col-span-2 flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-slate-600">สถานที่จัดกิจกรรม <span class="text-rose-500">*</span></label>
-          <textarea id="location" required rows="2" placeholder="เช่น ห้อง 301 อาคาร A มหาวิทยาลัย..."
-            class="px-3 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-300 resize-none"></textarea>
+          <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">สถานที่จัดกิจกรรม <span class="text-rose-400">*</span></label>
+          <textarea id="location" required rows="2" placeholder="เช่น ห้อง 301 อาคาร A มหาวิทยาลัย..." class="finput" style="resize:none"></textarea>
         </div>
-
       </div>
     </div>
 
-    <!-- Section 3: อัปโหลดรูป -->
-    <div class="glass rounded-2xl p-6 mb-6 shadow-sm">
-      <div class="flex items-center gap-2 mb-5">
-        <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">
+    <!-- ── Section 3: หลักฐานภาพ ── -->
+    <div class="glass rounded-2xl p-6 mb-6 shadow-sm card-in" id="sec3" style="transition-delay:.16s">
+      <div class="flex items-center gap-2.5 mb-5">
+        <div class="section-badge bg-amber-100">
           <i data-lucide="image" class="w-4 h-4 text-amber-500"></i>
         </div>
-        <h2 class="font-semibold text-slate-700">หลักฐานภาพ</h2>
-        <span class="text-xs text-slate-400">(ไม่บังคับ)</span>
+        <div>
+          <h2 class="font-bold text-slate-800 text-sm">หลักฐานภาพ <span class="text-xs font-normal text-slate-400">(ไม่บังคับ)</span></h2>
+          <p class="text-xs text-slate-400">Photo Evidence</p>
+        </div>
       </div>
-
-      <div id="drop-zone"
-        class="drop-zone border-2 border-dashed border-slate-200 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-300 transition"
+      <div id="drop-zone" class="drop-zone p-8 text-center cursor-pointer"
         onclick="document.getElementById('image-input').click()"
-        ondragover="handleDragOver(event)"
-        ondragleave="handleDragLeave(event)"
-        ondrop="handleDrop(event)">
-        <i data-lucide="upload-cloud" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
-        <p class="text-sm text-slate-400">คลิกหรือลากไฟล์รูปมาวางที่นี่</p>
-        <p class="text-xs text-slate-300 mt-1">รองรับ JPG, PNG</p>
+        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <div style="animation:floatUp 2s ease-in-out infinite alternate">
+          <i data-lucide="upload-cloud" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
+        </div>
+        <p class="text-sm text-slate-400 font-medium">คลิกหรือลากไฟล์รูปมาวางที่นี่</p>
+        <p class="text-xs text-slate-300 mt-1">รองรับ JPG, PNG · max <strong>5 MB</strong> · บีบอัดอัตโนมัติ max 1200px</p>
       </div>
       <input id="image-input" type="file" accept=".jpg,.jpeg,.png" class="hidden" onchange="handleImageSelect(event)" />
-
       <div id="image-preview-container" class="hidden mt-4">
         <div class="relative inline-block">
-          <img id="image-preview" src="" alt="Preview" class="max-h-48 rounded-xl shadow-md" />
+          <img id="image-preview" src="" alt="Preview" class="max-h-48 rounded-xl shadow-md" style="animation:fadeUp .4s cubic-bezier(.16,1,.3,1)" />
           <button type="button" onclick="removeImage()"
             class="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center hover:bg-rose-600 transition shadow">
             <i data-lucide="x" class="w-3.5 h-3.5"></i>
           </button>
         </div>
         <div class="flex items-center gap-2 mt-2">
-          <span id="img-size-badge" class="hidden text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium"></span>
+          <span id="img-size-badge" class="hidden img-size-badge"></span>
           <span class="text-xs text-slate-400">บีบอัดแล้ว · max 1200px</span>
         </div>
       </div>
     </div>
 
     <!-- Submit -->
-    <button type="submit" id="submit-btn"
-      class="shimmer w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold text-base shadow-md hover:opacity-90 transition flex items-center justify-center gap-2">
+    <button type="submit" id="submit-btn" class="submit-btn" onclick="addRipple(event)">
       <i data-lucide="send" class="w-5 h-5"></i>
       <span>ส่งข้อมูล</span>
     </button>
-
   </form>
 </div>
 
-
-<!-- ============================================================
-     PAGE: SUCCESS SCREEN
-============================================================ -->
+<!-- ── SUCCESS SCREEN ──────────────────────────────────────── -->
 <div id="success-screen" class="hidden fixed inset-0 mesh-bg flex items-center justify-center z-30 px-4">
-  <div class="glass rounded-2xl p-10 text-center max-w-sm w-full reveal shadow-xl">
-    <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-      <i data-lucide="check-circle-2" class="w-9 h-9 text-emerald-500"></i>
+  <div id="confetti-container" class="fixed inset-0 pointer-events-none overflow-hidden"></div>
+  <div class="glass rounded-3xl p-10 text-center max-w-sm w-full shadow-2xl" style="animation:fadeUp .5s cubic-bezier(.16,1,.3,1) both">
+    <div class="w-20 h-20 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg success-icon">
+      <i data-lucide="check" class="w-10 h-10 text-white"></i>
     </div>
-    <h2 class="text-xl font-bold text-slate-800 mb-1">ส่งข้อมูลสำเร็จ!</h2>
-    <p class="text-slate-500 text-sm mb-6">ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว</p>
+    <h2 class="text-2xl font-bold text-slate-800 mb-1">ส่งข้อมูลสำเร็จ! 🎉</h2>
+    <p class="text-slate-500 text-sm mb-7">ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว</p>
     <button onclick="resetAndShowForm()"
-      class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold hover:opacity-90 transition">
+      class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-bold hover:opacity-90 transition shadow-md">
       ส่งข้อมูลชุดใหม่
     </button>
   </div>
 </div>
 
-
-<!-- ============================================================
-     MODAL: Details
-============================================================ -->
+<!-- ── MODAL: Details ─────────────────────────────────────── -->
 <div id="details-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeDetailsModal(event)">
-  <div class="glass rounded-2xl p-6 max-w-lg w-full shadow-2xl" onclick="event.stopPropagation()">
-    <div class="flex items-center justify-between mb-5">
+  <div class="glass rounded-2xl p-6 max-w-lg w-full shadow-2xl" onclick="event.stopPropagation()" style="animation:fadeUp .3s cubic-bezier(.16,1,.3,1)">
+    <div class="flex items-center justify-between mb-4">
       <h3 class="font-bold text-slate-800 text-lg">รายละเอียด</h3>
-      <button onclick="closeDetailsModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition">
-        <i data-lucide="x" class="w-4 h-4 text-slate-500"></i>
-      </button>
+      <button onclick="closeDetailsModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center"><i data-lucide="x" class="w-4 h-4 text-slate-500"></i></button>
     </div>
     <div id="details-content" class="space-y-3 text-sm"></div>
   </div>
 </div>
 
-
-<!-- ============================================================
-     MODAL: Image
-============================================================ -->
-<div id="image-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeImageModal(event)">
+<!-- ── MODAL: Image ───────────────────────────────────────── -->
+<div id="image-modal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeImageModal(event)">
   <div class="relative max-w-2xl w-full" onclick="event.stopPropagation()">
-    <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white/70 hover:text-white transition flex items-center gap-1 text-sm">
-      <i data-lucide="x" class="w-4 h-4"></i> ปิด
-    </button>
+    <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white/70 hover:text-white flex items-center gap-1 text-sm"><i data-lucide="x" class="w-4 h-4"></i> ปิด</button>
     <img id="modal-image" src="" alt="" class="w-full rounded-2xl shadow-2xl" />
   </div>
 </div>
 
-
-<!-- ============================================================
-     MODAL: Login PIN
-============================================================ -->
-<div id="login-modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="glass rounded-2xl p-8 max-w-sm w-full shadow-2xl reveal">
+<!-- ── MODAL: Login ───────────────────────────────────────── -->
+<div id="login-modal" class="hidden fixed inset-0 bg-black/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="glass rounded-2xl p-8 max-w-sm w-full shadow-2xl" style="animation:fadeUp .35s cubic-bezier(.16,1,.3,1)">
     <div class="text-center mb-6">
-      <div class="w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
+      <div class="w-14 h-14 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-full flex items-center justify-center mx-auto mb-3">
         <i data-lucide="shield-check" class="w-7 h-7 text-indigo-600"></i>
       </div>
       <h3 class="font-bold text-slate-800 text-lg">Admin Access</h3>
@@ -509,98 +503,133 @@
     </div>
     <div id="pin-error" class="hidden mb-3 px-3 py-2 bg-rose-50 border border-rose-200 rounded-lg text-sm text-rose-600 text-center">รหัสผ่านไม่ถูกต้อง</div>
     <input id="pin-input" type="password" placeholder="รหัสผ่าน" maxlength="20"
-      class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-center text-lg tracking-widest mb-4 focus:outline-none focus:border-indigo-400"
+      class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-center text-lg tracking-widest mb-4 focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
       onkeydown="if(event.key==='Enter') checkPin()" />
     <div class="flex gap-3">
-      <button onclick="closeLoginModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm hover:bg-slate-50 transition">ยกเลิก</button>
-      <button onclick="checkPin()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-semibold hover:opacity-90 transition">เข้าสู่ระบบ</button>
+      <button onclick="closeLoginModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm hover:bg-slate-50 transition font-medium">ยกเลิก</button>
+      <button onclick="checkPin()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-bold hover:opacity-90 transition shadow-sm">เข้าสู่ระบบ</button>
     </div>
   </div>
 </div>
 
+<style>
+  @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes floatUp{from{transform:translateY(0);}to{transform:translateY(-6px);}}
+</style>
 
-<!-- ============================================================
-     SCRIPTS
-============================================================ -->
 <script>
-// ─── CONFIG ───────────────────────────────────────────────────
-const SUPABASE_URL      = 'https://hewzmzpheebheetbalbh.supabase.co';
-const SUPABASE_ANON_KEY = ''; // ← ใส่ anon key ที่นี่
-const ADMIN_PASSWORD    = '1234'; // ← เปลี่ยนรหัสผ่านที่นี่
-
+// ─── CONFIG (จาก config.js) ──────────────────────────────────────
+// SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_PIN โหลดมาจาก config.js แล้ว
 const DEFAULT_ACTIVITIES = [
-  'ปฐมนิเทศนักศึกษา', 'รับน้องใหม่', 'สัมมนาวิชาการ',
-  'ค่ายอาสาพัฒนา', 'แข่งขันกีฬาภายใน', 'กิจกรรมชมรม',
+  'ปฐมนิเทศนักศึกษา','รับน้องใหม่','สัมมนาวิชาการ',
+  'ค่ายอาสาพัฒนา','แข่งขันกีฬาภายใน','กิจกรรมชมรม',
   'อื่นๆ (โปรดระบุในช่องสถานที่)'
 ];
 
-// ─── SUPABASE INIT ────────────────────────────────────────────
-const hasSupabase = SUPABASE_URL && SUPABASE_ANON_KEY;
+const hasSupabase = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 let supabaseClient = null;
-if (hasSupabase) {
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
+if (hasSupabase) supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ─── UTILS ────────────────────────────────────────────────────
-function getActivities() {
-  const saved = localStorage.getItem('activitiesListDB');
-  return saved ? JSON.parse(saved) : [...DEFAULT_ACTIVITIES];
-}
-
-function renderActivityOptions() {
-  const list = document.getElementById('activities-list');
-  if (!list) return;
-  list.innerHTML = '';
-  getActivities().forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a;
-    list.appendChild(opt);
+// ─── STEP PROGRESS ──────────────────────────────────────────────
+function updateStep(active) {
+  [1,2,3].forEach(n => {
+    const dot   = document.getElementById(`sdot${n}`);
+    const label = document.getElementById(`slabel${n}`);
+    dot.className   = 'step-dot' + (n < active ? ' done' : n === active ? ' active' : '');
+    label.className = 'step-label' + (n === active ? ' active' : '');
+    if (n < active) dot.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>';
+    else dot.innerHTML = String(n);
   });
+  if (document.getElementById('sline1')) {
+    document.getElementById('sline1').style.width = active >= 2 ? '100%' : '0%';
+    document.getElementById('sline2').style.width = active >= 3 ? '100%' : '0%';
+  }
+  lucide.createIcons();
 }
 
-// ─── IMAGE HANDLING ───────────────────────────────────────────
+function trackScrollStep() {
+  const s1 = document.getElementById('sec1');
+  const s2 = document.getElementById('sec2');
+  const s3 = document.getElementById('sec3');
+  if (!s1) return;
+  const mid = window.scrollY + window.innerHeight / 2;
+  let step = 1;
+  if (s2 && mid > s2.offsetTop) step = 2;
+  if (s3 && mid > s3.offsetTop) step = 3;
+  updateStep(step);
+}
+
+// ─── STAGGER REVEAL ─────────────────────────────────────────────
+function initReveal() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.card-in').forEach(el => obs.observe(el));
+}
+
+// ─── RIPPLE ─────────────────────────────────────────────────────
+function addRipple(e) {
+  const btn  = document.getElementById('submit-btn');
+  const rect = btn.getBoundingClientRect();
+  const d    = Math.max(rect.width, rect.height);
+  const rip  = document.createElement('span');
+  rip.className = 'ripple';
+  rip.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX-rect.left-d/2}px;top:${e.clientY-rect.top-d/2}px`;
+  btn.appendChild(rip);
+  setTimeout(() => rip.remove(), 600);
+}
+
+// ─── IMAGE ──────────────────────────────────────────────────────
 let imageBase64 = '';
-const IMG_MAX_SIZE = 1200;   // px ด้านยาวสูงสุด
-const IMG_QUALITY  = 0.75;   // JPEG quality (0-1)
-const IMG_MAX_BYTES = 1.2 * 1024 * 1024; // ~1.2MB หลัง compress
+const IMG_MAX_SIZE = 1200, IMG_QUALITY = 0.75;
+const FILE_MAX_BYTES = 5 * 1024 * 1024; // 5 MB limit (ก่อน compress)
 
 function handleImageSelect(e) {
   const file = e.target.files[0];
-  if (file) {
-    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
-      alert('รองรับเฉพาะไฟล์ JPG, PNG เท่านั้น'); return;
-    }
-    readImage(file);
+  if (!file) return;
+  if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+    showFileError('รองรับเฉพาะ JPG, PNG เท่านั้น'); return;
   }
+  if (file.size > FILE_MAX_BYTES) {
+    showFileError(`ไฟล์ใหญ่เกิน 5 MB (ไฟล์ของคุณ ${(file.size/1024/1024).toFixed(1)} MB)`);
+    document.getElementById('image-input').value = '';
+    return;
+  }
+  readImage(file);
 }
 
+function showFileError(msg) {
+  const dz = document.getElementById('drop-zone');
+  const err = document.getElementById('file-size-error');
+  if (err) { err.textContent = msg; err.classList.remove('hidden'); }
+  else {
+    const p = document.createElement('p');
+    p.id='file-size-error';
+    p.className='text-xs text-rose-500 mt-2';
+    p.textContent = msg;
+    dz.insertAdjacentElement('afterend', p);
+  }
+  setTimeout(() => document.getElementById('file-size-error')?.classList.add('hidden'), 4000);
+}
 function readImage(file) {
   const reader = new FileReader();
-  reader.onload = (ev) => {
+  reader.onload = ev => {
     const img = new Image();
     img.onload = () => {
-      // Compress via canvas
       let w = img.width, h = img.height;
       if (w > IMG_MAX_SIZE || h > IMG_MAX_SIZE) {
-        if (w > h) { h = Math.round(h * IMG_MAX_SIZE / w); w = IMG_MAX_SIZE; }
-        else        { w = Math.round(w * IMG_MAX_SIZE / h); h = IMG_MAX_SIZE; }
+        if (w > h) { h = Math.round(h*IMG_MAX_SIZE/w); w = IMG_MAX_SIZE; }
+        else       { w = Math.round(w*IMG_MAX_SIZE/h); h = IMG_MAX_SIZE; }
       }
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       const compressed = canvas.toDataURL('image/jpeg', IMG_QUALITY);
-
-      if (compressed.length > IMG_MAX_BYTES * 1.37) { // base64 ~37% overhead
-        alert('ไฟล์รูปใหญ่เกินไปแม้หลังบีบอัด กรุณาใช้รูปที่เล็กกว่านี้');
-        return;
-      }
+      if (compressed.length > FILE_MAX_BYTES * 1.37) { alert('ไฟล์ใหญ่เกิน กรุณาใช้รูปที่เล็กกว่า'); return; }
       imageBase64 = compressed;
-
-      // แสดง badge ขนาดไฟล์
       const kb = Math.round(compressed.length * 0.75 / 1024);
-      const sizeBadge = document.getElementById('img-size-badge');
-      if (sizeBadge) { sizeBadge.textContent = `${kb} KB`; sizeBadge.classList.remove('hidden'); }
-
+      const badge = document.getElementById('img-size-badge');
+      if (badge) { badge.textContent = `✓ ${kb} KB`; badge.classList.remove('hidden'); }
       document.getElementById('image-preview').src = imageBase64;
       document.getElementById('drop-zone').classList.add('hidden');
       document.getElementById('image-preview-container').classList.remove('hidden');
@@ -609,7 +638,6 @@ function readImage(file) {
   };
   reader.readAsDataURL(file);
 }
-
 function removeImage() {
   imageBase64 = '';
   document.getElementById('image-input').value = '';
@@ -617,145 +645,140 @@ function removeImage() {
   document.getElementById('image-preview-container').classList.add('hidden');
   document.getElementById('drop-zone').classList.remove('hidden');
   const badge = document.getElementById('img-size-badge');
-  if (badge) { badge.textContent = ''; badge.classList.add('hidden'); }
+  if (badge) { badge.textContent=''; badge.classList.add('hidden'); }
 }
-
-function handleDragOver(e) {
-  e.preventDefault();
-  document.getElementById('drop-zone').classList.add('dragover');
-}
-
-function handleDragLeave() {
-  document.getElementById('drop-zone').classList.remove('dragover');
-}
-
+function handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('dragover'); }
+function handleDragLeave() { document.getElementById('drop-zone').classList.remove('dragover'); }
 function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('drop-zone').classList.remove('dragover');
+  e.preventDefault(); document.getElementById('drop-zone').classList.remove('dragover');
   const file = e.dataTransfer.files[0];
-  if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
-    readImage(file);
-  }
+  if (!file) return;
+  if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { showFileError('รองรับเฉพาะ JPG, PNG เท่านั้น'); return; }
+  if (file.size > FILE_MAX_BYTES) { showFileError(`ไฟล์ใหญ่เกิน 5 MB (${(file.size/1024/1024).toFixed(1)} MB)`); return; }
+  readImage(file);
 }
 
-// ─── FORM SUBMIT ──────────────────────────────────────────────
-let isSubmitting = false;
+// ─── MAJOR ──────────────────────────────────────────────────────
+function onMajorChange() {
+  document.getElementById('major-group').classList.remove('error');
+  document.getElementById('major-error').classList.add('hidden');
+}
 
+// ─── CONFETTI ───────────────────────────────────────────────────
+function launchConfetti() {
+  const colors = ['#4f46e5','#7c3aed','#f43f5e','#10b981','#f59e0b','#06b6d4'];
+  const container = document.getElementById('confetti-container');
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const left  = Math.random() * 100;
+    const delay = Math.random() * 0.8;
+    const size  = 6 + Math.random() * 8;
+    const shape = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.cssText = `
+      left:${left}%;width:${size}px;height:${size}px;
+      background:${color};border-radius:${shape};
+      animation-delay:${delay}s;animation-duration:${0.9+Math.random()*0.6}s;
+    `;
+    container.appendChild(piece);
+  }
+  setTimeout(() => { if(container) container.innerHTML = ''; }, 2500);
+}
+
+// ─── SUBMIT ─────────────────────────────────────────────────────
+let isSubmitting = false;
 async function handleSubmit(e) {
   e.preventDefault();
-  if (isSubmitting) return; // ป้องกัน double submit
+  if (isSubmitting) return;
 
-  const fields = ['student_name','student_id','phone','activity_name','section','date','time_start','time_end','location'];
+  const fields = ['student_name','student_id','phone','course_code','teacher_name','section','date','time_start','time_end','location'];
   let valid = true;
-
   fields.forEach(id => {
     const el = document.getElementById(id);
-    if (el && el.required && !el.value.trim()) {
-      el.style.borderColor = '#f43f5e';
-      valid = false;
-    } else if (el) {
-      el.style.borderColor = '';
-    }
+    if (el && el.required && !el.value.trim()) { el.style.borderColor='#f43f5e'; valid=false; }
+    else if (el) el.style.borderColor='';
   });
 
-  // Validate major radio
   const selectedMajor = document.querySelector('input[name="major"]:checked');
-  const majorGroup = document.getElementById('major-group');
-  const majorError = document.getElementById('major-error');
   if (!selectedMajor) {
-    majorGroup.classList.add('error');
-    majorError.classList.remove('hidden');
+    document.getElementById('major-group').classList.add('error');
+    document.getElementById('major-error').classList.remove('hidden');
     valid = false;
   } else {
-    majorGroup.classList.remove('error');
-    majorError.classList.add('hidden');
+    document.getElementById('major-group').classList.remove('error');
+    document.getElementById('major-error').classList.add('hidden');
+  }
+
+  const actVal = _selectedActivity;
+  if (!actVal) {
+    document.getElementById('act-trigger').classList.add('error');
+    document.getElementById('activity-error').classList.remove('hidden');
+    valid = false;
+  } else {
+    document.getElementById('act-trigger').classList.remove('error');
+    document.getElementById('activity-error').classList.add('hidden');
   }
 
   if (!valid) {
-    const firstError = document.querySelector('[style*="border-color: rgb(244, 63, 94)"]') ||
-                       document.querySelector('[style*="#f43f5e"]') ||
-                       majorGroup;
-    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const firstErr = document.querySelector('.finput[style*="f43f5e"]') || document.getElementById('major-group') || document.getElementById('activity-group');
+    if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
     return;
   }
 
   isSubmitting = true;
   const btn = document.getElementById('submit-btn');
-  btn.disabled = true;
-  btn.style.opacity = '0.75';
-  btn.innerHTML = '<svg class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>กำลังส่งข้อมูล...';
+  btn.disabled = true; btn.style.opacity = '0.75';
+  btn.innerHTML = `<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg><span>กำลังส่งข้อมูล...</span>`;
 
   const timeStart = document.getElementById('time_start').value;
   const timeEnd   = document.getElementById('time_end').value;
-
   const record = {
-    id:            crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
-    created_at:    new Date().toISOString(),
-    student_name:  document.getElementById('student_name').value.trim(),
-    student_id:    document.getElementById('student_id').value.trim(),
-    nickname:      document.getElementById('nickname').value.trim(),
-    phone:         document.getElementById('phone').value.trim(),
-    major:         document.querySelector('input[name="major"]:checked')?.value || '',
-    activity_name: document.getElementById('activity_name').value.trim(),
-    course_code:   document.getElementById('course_code').value.trim(),
-    teacher_name:  document.getElementById('teacher_name').value.trim(),
-    section:       document.getElementById('section').value.trim(),
-    date:          document.getElementById('date').value,
-    class_time:        `${timeStart} - ${timeEnd}`,
-    activity_detail:   document.getElementById('activity_detail').value.trim(),
-    location:          document.getElementById('location').value.trim(),
-    image:             imageBase64
+    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+    created_at: new Date().toISOString(),
+    student_name:    document.getElementById('student_name').value.trim(),
+    student_id:      document.getElementById('student_id').value.trim(),
+    nickname:        document.getElementById('nickname').value.trim(),
+    phone:           document.getElementById('phone').value.trim(),
+    major:           selectedMajor.value,
+    activity_name:   actVal,
+    course_code:     document.getElementById('course_code').value.trim(),
+    teacher_name:    document.getElementById('teacher_name').value.trim(),
+    section:         document.getElementById('section').value.trim(),
+    date:            document.getElementById('date').value,
+    class_time:      `${timeStart} - ${timeEnd}`,
+    activity_detail: document.getElementById('activity_detail').value.trim(),
+    location:        document.getElementById('location').value.trim(),
+    image:           imageBase64
   };
-
-  // Save activity if new
-  const activities = getActivities();
-  if (record.activity_name && !activities.includes(record.activity_name)) {
-    activities.push(record.activity_name);
-    localStorage.setItem('activitiesListDB', JSON.stringify(activities));
-  }
 
   try {
     if (hasSupabase) {
       const { error } = await supabaseClient.from('staff_records').insert([record]);
       if (error) throw error;
     } else {
-      // Fallback: localStorage
       const db = JSON.parse(localStorage.getItem('staffSystemDB') || '[]');
       db.push(record);
       localStorage.setItem('staffSystemDB', JSON.stringify(db));
-      // Trigger storage event for other tabs
-      window.dispatchEvent(new StorageEvent('storage', { key: 'staffSystemDB' }));
     }
-
     showSuccessScreen();
   } catch (err) {
-    console.error('Save error:', err);
-    // Fallback to localStorage even if Supabase fails
     const db = JSON.parse(localStorage.getItem('staffSystemDB') || '[]');
-    db.push(record);
-    localStorage.setItem('staffSystemDB', JSON.stringify(db));
+    db.push(record); localStorage.setItem('staffSystemDB', JSON.stringify(db));
     showSuccessScreen();
   }
 
-  isSubmitting = false;
-  btn.disabled = false;
-  btn.style.opacity = '';
+  isSubmitting = false; btn.disabled = false; btn.style.opacity = '';
   btn.innerHTML = '<i data-lucide="send" class="w-5 h-5"></i><span>ส่งข้อมูล</span>';
   lucide.createIcons();
 }
 
-// ─── PAGE CONTROL ─────────────────────────────────────────────
 function showSuccessScreen() {
   document.getElementById('page-registration').classList.add('hidden');
   const ss = document.getElementById('success-screen');
-  ss.classList.remove('hidden');
-  ss.classList.add('flex');
+  ss.classList.remove('hidden'); ss.classList.add('flex');
   lucide.createIcons();
-}
-
-function onMajorChange(radio) {
-  document.getElementById('major-group').classList.remove('error');
-  document.getElementById('major-error').classList.add('hidden');
+  launchConfetti();
 }
 
 function resetAndShowForm() {
@@ -763,75 +786,117 @@ function resetAndShowForm() {
   document.querySelectorAll('input[name="major"]').forEach(r => r.checked = false);
   document.getElementById('major-group').classList.remove('error');
   document.getElementById('major-error').classList.add('hidden');
+  // reset activity dropdown
+  _selectedActivity = '';
+  document.getElementById('activity_name_val').value = '';
+  document.getElementById('act-trigger-text').textContent = 'เลือกกิจกรรม...';
+  document.getElementById('act-trigger-text').classList.remove('has-val');
+  document.getElementById('act-trigger').classList.remove('selected','error','open');
+  document.getElementById('act-menu').classList.remove('open');
+  document.getElementById('activity-error').classList.add('hidden');
   removeImage();
   document.getElementById('success-screen').classList.add('hidden');
   document.getElementById('success-screen').classList.remove('flex');
   document.getElementById('page-registration').classList.remove('hidden');
+  updateStep(1);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function showPage(page) {
-  // For now just go to registration
-  document.getElementById('page-registration').classList.remove('hidden');
+// ─── ACTIVITIES ─────────────────────────────────────────────────
+function getActivities() {
+  const s = localStorage.getItem('activitiesListDB');
+  return s ? JSON.parse(s) : [...DEFAULT_ACTIVITIES];
 }
-
-function goToAdmin() {
-  window.location.href = 'admin.html';
+async function syncActivitiesFromSupabase() {
+  if (!hasSupabase) return;
+  try {
+    const { data, error } = await supabaseClient.from('activities_list').select('name').order('id');
+    if (!error && data && data.length) {
+      const names = data.map(r => r.name);
+      localStorage.setItem('activitiesListDB', JSON.stringify(names));
+      renderActivityOptions(); // refresh dropdown
+    }
+  } catch(e) {}
 }
+let _selectedActivity = '';
 
-// ─── MODALS ───────────────────────────────────────────────────
-function closeDetailsModal(e) {
-  if (!e || e.target === document.getElementById('details-modal')) {
-    document.getElementById('details-modal').classList.add('hidden');
+function renderActivityOptions() {
+  const menu = document.getElementById('act-menu');
+  if (!menu) return;
+  const acts = getActivities();
+  if (!acts.length) {
+    menu.innerHTML = '<div style="padding:14px;text-align:center;color:#94a3b8;font-size:13px;">ยังไม่มีกิจกรรม — เพิ่มใน Admin</div>';
+    return;
   }
+  // ส่ง index แทน string ตรงๆ เพื่อหลีกเลี่ยง quote ใน HTML attribute
+  menu.innerHTML = acts.map((a, i) => `
+    <div class="act-option${_selectedActivity===a?' active':''}" onclick="selectActivity(${i})">
+      <span class="act-opt-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <span class="act-opt-label">${a}</span>
+    </div>`).join('');
 }
 
-function closeImageModal(e) {
-  if (!e || e.target === document.getElementById('image-modal')) {
-    document.getElementById('image-modal').classList.add('hidden');
-    document.getElementById('modal-image').src = '';
+function selectActivityByName(val) {
+  _selectedActivity = val;
+  document.getElementById('activity_name_val').value = val;
+  document.getElementById('act-trigger-text').textContent = val;
+  document.getElementById('act-trigger-text').classList.add('has-val');
+  document.getElementById('act-trigger').classList.remove('open','error');
+  document.getElementById('act-trigger').classList.add('selected');
+  document.getElementById('act-menu').classList.remove('open');
+  document.getElementById('activity-error').classList.add('hidden');
+}
+
+function toggleActDropdown() {
+  const trigger = document.getElementById('act-trigger');
+  const menu = document.getElementById('act-menu');
+  const isOpen = menu.classList.contains('open');
+  if (isOpen) { menu.classList.remove('open'); trigger.classList.remove('open'); }
+  else { renderActivityOptions(); menu.classList.add('open'); trigger.classList.add('open'); }
+}
+
+function selectActivity(idx) {
+  const acts = getActivities();
+  const val = acts[idx];
+  if (val === undefined) return;
+  selectActivityByName(val);
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('#activity-dropdown')) {
+    document.getElementById('act-menu')?.classList.remove('open');
+    document.getElementById('act-trigger')?.classList.remove('open');
   }
-}
+});
 
-function viewImage(src) {
-  document.getElementById('modal-image').src = src;
-  document.getElementById('image-modal').classList.remove('hidden');
-}
-
-function tryAccessAdmin() {
-  document.getElementById('login-modal').classList.remove('hidden');
-  setTimeout(() => document.getElementById('pin-input').focus(), 100);
-}
-
-function closeLoginModal() {
-  document.getElementById('login-modal').classList.add('hidden');
-  document.getElementById('pin-input').value = '';
-  document.getElementById('pin-error').classList.add('hidden');
-}
-
+// ─── MODALS ─────────────────────────────────────────────────────
+function closeDetailsModal(e) { if (!e || e.target===document.getElementById('details-modal')) document.getElementById('details-modal').classList.add('hidden'); }
+function closeImageModal(e)   { if (!e || e.target===document.getElementById('image-modal'))   { document.getElementById('image-modal').classList.add('hidden'); document.getElementById('modal-image').src=''; } }
+function tryAccessAdmin() { document.getElementById('login-modal').classList.remove('hidden'); setTimeout(()=>document.getElementById('pin-input').focus(),100); }
+function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); document.getElementById('pin-input').value=''; document.getElementById('pin-error').classList.add('hidden'); }
 function checkPin() {
   const pin = document.getElementById('pin-input').value;
-  if (pin === ADMIN_PASSWORD) {
-    closeLoginModal();
-    window.location.href = 'admin.html';
-  } else {
-    const errEl = document.getElementById('pin-error');
-    errEl.classList.remove('hidden');
-    const pinInput = document.getElementById('pin-input');
-    pinInput.classList.add('shake');
-    setTimeout(() => pinInput.classList.remove('shake'), 500);
-    pinInput.value = '';
+  if (pin === ADMIN_PIN) { closeLoginModal(); sessionStorage.setItem('admin_auth','1'); window.location.href='admin.html'; }
+  else {
+    document.getElementById('pin-error').classList.remove('hidden');
+    const inp = document.getElementById('pin-input');
+    inp.classList.add('shake'); setTimeout(()=>inp.classList.remove('shake'),500); inp.value='';
   }
 }
 
-// ─── INIT ─────────────────────────────────────────────────────
+// ─── INIT ───────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Set today's date
   document.getElementById('date').value = new Date().toISOString().split('T')[0];
   renderActivityOptions();
+  syncActivitiesFromSupabase(); // ดึงรายการกิจกรรมจาก Supabase (ถ้ามี)
   lucide.createIcons();
+  initReveal();
+  window.addEventListener('scroll', trackScrollStep, { passive: true });
+  updateStep(1);
 });
 </script>
-
 </body>
 </html>
