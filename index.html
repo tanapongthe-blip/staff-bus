@@ -30,12 +30,15 @@
 
     /* ── Background ── */
     .mesh-bg {
-      background-color:#f0f4ff;
-      background-image:
-        radial-gradient(at 15% 10%, rgba(99,102,241,0.18) 0,transparent 55%),
-        radial-gradient(at 85% 5%,  rgba(244,63,94,0.12)  0,transparent 45%),
-        radial-gradient(at 50% 90%, rgba(124,58,237,0.12) 0,transparent 55%);
+      background: linear-gradient(-45deg, #eff6ff, #f0f4ff, #e0f2fe, #f8faff, #eef2ff);
+      background-size: 400% 400%;
+      animation: gradientShift 12s ease infinite;
       min-height:100vh;
+    }
+    @keyframes gradientShift {
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
     }
 
     /* ── Floating orbs ── */
@@ -44,9 +47,9 @@
       pointer-events:none; z-index:0;
       animation: floatOrb 8s ease-in-out infinite alternate;
     }
-    .orb1{width:320px;height:320px;background:rgba(99,102,241,0.12);top:-80px;left:-80px;animation-duration:9s;}
-    .orb2{width:260px;height:260px;background:rgba(244,63,94,0.09);top:30%;right:-60px;animation-duration:11s;animation-delay:-3s;}
-    .orb3{width:200px;height:200px;background:rgba(124,58,237,0.1);bottom:-60px;left:30%;animation-duration:13s;animation-delay:-6s;}
+    .orb1{width:320px;height:320px;background:rgba(37,99,235,0.18);top:-80px;left:-80px;animation-duration:9s;}
+    .orb2{width:260px;height:260px;background:rgba(99,102,241,0.15);top:30%;right:-60px;animation-duration:11s;animation-delay:-3s;}
+    .orb3{width:200px;height:200px;background:rgba(14,165,233,0.12);bottom:-60px;left:30%;animation-duration:13s;animation-delay:-6s;}
     @keyframes floatOrb{from{transform:translate(0,0) scale(1);}to{transform:translate(20px,30px) scale(1.08);}}
 
     /* ── Glass ── */
@@ -65,28 +68,58 @@
 
     /* ── Step progress ── */
     .step-line{height:3px;border-radius:999px;background:#e2e8f0;overflow:hidden;}
-    .step-line-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#4f46e5,#7c3aed);transition:width .5s cubic-bezier(.16,1,.3,1);}
+    .step-line-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:width .5s cubic-bezier(.16,1,.3,1);}
     .step-dot{
       width:28px;height:28px;border-radius:50%;border:2px solid #e2e8f0;
       background:white;display:flex;align-items:center;justify-content:center;
       font-size:11px;font-weight:700;color:#94a3b8;transition:all .4s cubic-bezier(.16,1,.3,1);
+      position: relative;
     }
-    .step-dot.done{background:linear-gradient(135deg,#4f46e5,#7c3aed);border-color:#4f46e5;color:white;transform:scale(1.1);}
-    .step-dot.active{border-color:#4f46e5;color:#4f46e5;box-shadow:0 0 0 4px rgba(79,70,229,0.15);}
+    .step-dot.done{background:linear-gradient(135deg,#2563eb,#7c3aed);border-color:#2563eb;color:white;transform:scale(1.1);}
+    .step-dot.active{border-color:#2563eb;color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,0.2);}
+    .step-dot.active::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid #2563eb;
+      animation: pulseRing 1.5s ease-out infinite;
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
     .step-label{font-size:10px;color:#94a3b8;margin-top:4px;font-weight:500;transition:color .3s;}
-    .step-label.active{color:#4f46e5;}
+    .step-label.active{color:#2563eb;}
 
     /* ── Cards stagger ── */
     .card-in{opacity:0;transform:translateY(24px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1);}
     .card-in.visible{opacity:1;transform:translateY(0);}
+    .card-in {
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity .6s, transform .6s;
+      transform-style: preserve-3d;
+    }
+    .card-in:hover {
+      box-shadow: 0 20px 60px rgba(124,58,237,0.15);
+    }
 
     /* ── Inputs ── */
     .finput{
       width:100%;padding:10px 13px;border-radius:12px;
       border:1.5px solid #e2e8f0;background:rgba(255,255,255,0.7);
       font-size:13.5px;color:#1e293b;transition:all .2s;
+      min-height:44px;
     }
-    .finput:focus{outline:none;border-color:#4f46e5;background:white;box-shadow:0 0 0 4px rgba(79,70,229,0.1);}
+    .finput:focus{
+      outline:none;border-color:transparent;background:white;
+      box-shadow:0 0 0 3px transparent;animation:rainbowBorder 2s linear infinite;
+    }
+    @keyframes rainbowBorder {
+      0%   { box-shadow: 0 0 0 2px #2563eb; }
+      33%  { box-shadow: 0 0 0 2px #7c3aed; }
+      66%  { box-shadow: 0 0 0 2px #0ea5e9; }
+      100% { box-shadow: 0 0 0 2px #2563eb; }
+    }
     .finput::placeholder{color:#cbd5e1;}
 
     /* ── Major chips ── */
@@ -97,7 +130,7 @@
       background:rgba(255,255,255,0.6);transition:all .2s;user-select:none;
     }
     .major-label:hover{border-color:#a5b4fc;background:rgba(79,70,229,0.04);transform:translateY(-1px);}
-    .major-option input:checked + .major-label{border-color:#4f46e5;background:rgba(79,70,229,0.07);transform:translateY(-1px);}
+    .major-option input:checked + .major-label{border-color:#2563eb;background:rgba(37,99,235,0.07);transform:translateY(-1px);}
     .major-check{
       width:20px;height:20px;border-radius:6px;border:1.5px solid #e2e8f0;
       background:white;display:flex;align-items:center;justify-content:center;
@@ -107,7 +140,7 @@
     .major-text{display:flex;flex-direction:column;gap:1px;}
     .major-th{font-size:13px;font-weight:600;color:#1e293b;line-height:1.3;}
     .major-en{font-size:11px;color:#94a3b8;}
-    .major-option input:checked + .major-label .major-th{color:#4338ca;}
+    .major-option input:checked + .major-label .major-th{color:#1d4ed8;}
     #major-group.error .major-label,
     #activity-group.error .major-label{border-color:#fca5a5;}
 
@@ -118,7 +151,7 @@
       border:1.5px solid #e2e8f0;background:rgba(255,255,255,0.7);
       font-size:13.5px;color:#1e293b;cursor:pointer;
       display:flex;align-items:center;justify-content:space-between;gap:8px;
-      transition:all .2s;user-select:none;
+      transition:all .2s;user-select:none;min-height:44px;
     }
     .act-trigger:hover{border-color:#a5b4fc;background:rgba(79,70,229,0.04);}
     .act-trigger.open{border-color:#4f46e5;background:white;box-shadow:0 0 0 4px rgba(79,70,229,0.1);}
@@ -162,12 +195,21 @@
     /* ── Submit button ── */
     .submit-btn{
       position:relative;overflow:hidden;width:100%;padding:14px;
-      border-radius:14px;background:linear-gradient(135deg,#4f46e5,#7c3aed);
+      border-radius:14px;background:linear-gradient(135deg,#2563eb,#7c3aed,#1d4ed8);
       color:white;font-size:15px;font-weight:700;border:none;cursor:pointer;
-      transition:all .25s;box-shadow:0 4px 20px rgba(79,70,229,0.35);
+      transition:all .25s;box-shadow:0 4px 20px rgba(37,99,235,0.35);
       display:flex;align-items:center;justify-content:center;gap:8px;
     }
-    .submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(79,70,229,0.45);}
+    .submit-btn:hover:not(:disabled){
+      transform:translateY(-3px) scale(1.02);
+      box-shadow:0 12px 35px rgba(37,99,235,0.5);
+      animation:btnWiggle 0.4s ease;
+    }
+    @keyframes btnWiggle {
+      0%,100%{transform:translateY(-3px) scale(1.02) rotate(0deg)}
+      25%{transform:translateY(-3px) scale(1.02) rotate(-1deg)}
+      75%{transform:translateY(-3px) scale(1.02) rotate(1deg)}
+    }
     .submit-btn:active:not(:disabled){transform:scale(0.98);}
     .submit-btn::before{
       content:'';position:absolute;inset:0;
@@ -189,6 +231,20 @@
 
     /* ── Success screen ── */
     #success-screen{background:rgba(248,250,255,.97);}
+    @keyframes successBounceIn{
+      0%{transform:scale(0.6) translateY(40px);opacity:0;}
+      60%{transform:scale(1.06) translateY(-6px);}
+      100%{transform:scale(1) translateY(0);opacity:1;}
+    }
+    @keyframes successEmoji{
+      0%{transform:scale(0) rotate(-20deg);opacity:0;}
+      70%{transform:scale(1.2) rotate(5deg);}
+      100%{transform:scale(1) rotate(0);opacity:1;}
+    }
+
+    /* ── Wave separator ── */
+    .wave-sep{line-height:0;margin:-2px 0;pointer-events:none;}
+    .wave-sep svg{display:block;width:100%;}
     .success-icon{
       animation:successPop .6s cubic-bezier(.16,1,.3,1) both;
     }
@@ -225,6 +281,42 @@
       font-size:11px;font-weight:600;
     }
 
+    /* ── Floating shapes ── */
+    .float-shape {
+      position: fixed;
+      font-size: 20px;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatShape 6s ease-in-out infinite alternate;
+    }
+    @keyframes floatShape {
+      from { transform: translateY(0) rotate(0deg); }
+      to { transform: translateY(-20px) rotate(15deg); }
+    }
+
+    /* ── Section title gradient ── */
+    .section-title-grad {
+      background: linear-gradient(90deg, #2563eb, #7c3aed, #0ea5e9, #2563eb);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: titleFlow 3s linear infinite;
+    }
+    @keyframes titleFlow {
+      to { background-position: 200% center; }
+    }
+
+    /* ── Hero badge bounce ── */
+    .hero-badge {
+      animation: badgeBounce 2s ease-in-out infinite;
+    }
+    @keyframes badgeBounce {
+      0%,100%{transform:translateY(0) scale(1)}
+      50%{transform:translateY(-4px) scale(1.03)}
+    }
+
     /* ── Scrollbar ── */
     ::-webkit-scrollbar{width:5px;}
     ::-webkit-scrollbar-track{background:transparent;}
@@ -232,6 +324,46 @@
 
     /* z-index fix */
     nav,form,#page-registration,#success-screen{position:relative;z-index:1;}
+
+    /* ── NEW: Cursor sparkle ── */
+    @keyframes sparkFade {
+      0%{transform:translate(-50%,-50%) scale(1);opacity:1;}
+      100%{transform:translate(-50%,-50%) scale(0) translateY(-20px);opacity:0;}
+    }
+
+
+    /* ── NEW: Glassmorphism form card ── */
+    .form-card {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.8);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(37,99,235,0.08), inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    /* ── NEW: Enhanced submit button hover ── */
+    .submit-btn:hover:not(:disabled){
+      transform:translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 35px rgba(37,99,235,0.5), 0 0 20px rgba(37,99,235,0.3), 0 0 60px rgba(124,58,237,0.2);
+      animation:btnWiggle 0.4s ease;
+    }
+
+    /* ── NEW: Card top gradient bar ── */
+    .card-in { position: relative; overflow: hidden; }
+    .card-in::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #2563eb, #7c3aed, #0ea5e9, #2563eb);
+      background-size: 200% auto;
+      animation: titleFlow 3s linear infinite;
+      border-radius: 20px 20px 0 0;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .card-in.visible::before { opacity: 1; }
   </style>
 </head>
 
@@ -242,10 +374,17 @@
 <div class="orb orb2"></div>
 <div class="orb orb3"></div>
 
+<!-- Floating emoji shapes -->
+<div class="float-shape" style="top:8%;left:5%;animation-delay:0s;">🦈</div>
+<div class="float-shape" style="top:20%;right:3%;animation-delay:1s;">🌊</div>
+<div class="float-shape" style="top:45%;left:2%;animation-delay:2s;">🦈</div>
+<div class="float-shape" style="top:65%;right:5%;animation-delay:0.5s;">🌊</div>
+<div class="float-shape" style="top:80%;left:8%;animation-delay:1.5s;">💙</div>
+
 <!-- ── NAVBAR ─────────────────────────────────────────────── -->
 <nav class="navbar sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm">
   <div class="flex items-center gap-3">
-    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md" style="animation:badgePop .6s cubic-bezier(.16,1,.3,1) both">
+    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md" style="animation:badgePop .6s cubic-bezier(.16,1,.3,1) both">
       <i data-lucide="clipboard-list" class="w-5 h-5 text-white"></i>
     </div>
     <div>
@@ -257,21 +396,29 @@
     <span class="hidden sm:inline">Admin Panel</span>
   </button>
 </nav>
+<div style="position:relative;z-index:1;margin-top:-2px;line-height:0;">
+  <svg viewBox="0 0 1440 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="width:100%;height:40px;display:block;">
+    <path d="M0,20 C240,40 480,0 720,20 C960,40 1200,0 1440,20 L1440,0 L0,0 Z" fill="rgba(255,255,255,0.6)"/>
+  </svg>
+</div>
 
 <!-- ── PAGE: REGISTRATION ─────────────────────────────────── -->
 <div id="page-registration" class="max-w-2xl mx-auto px-4 py-8">
 
   <!-- Hero -->
   <div class="text-center mb-7" style="animation:fadeUp .7s cubic-bezier(.16,1,.3,1) both">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-semibold mb-3 border border-indigo-100">
+    <div class="hero-badge inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-3 border" style="background:linear-gradient(135deg,rgba(37,99,235,0.1),rgba(124,58,237,0.08));border-color:rgba(37,99,235,0.3);color:#1d4ed8;">
       <i data-lucide="sparkles" class="w-3 h-3"></i> บันทึกผลงานกิจกรรม
     </div>
-    <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 leading-tight">กรอกข้อมูลให้ครบถ้วน</h1>
+    <h1 class="text-2xl sm:text-3xl font-bold leading-tight" style="background:linear-gradient(135deg,#2563eb,#7c3aed,#0ea5e9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">กรอกข้อมูลให้ครบถ้วน</h1>
     <p class="text-slate-500 mt-1.5 text-sm">แล้วกดส่งข้อมูลด้านล่าง</p>
   </div>
 
   <!-- Step Progress -->
   <div class="glass rounded-2xl px-5 py-4 mb-6 shadow-sm" style="animation:fadeUp .7s .1s cubic-bezier(.16,1,.3,1) both">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+      <div id="fill-badge" style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;background:linear-gradient(135deg,rgba(37,99,235,0.1),rgba(124,58,237,0.08));color:#1d4ed8;border:1px solid rgba(37,99,235,0.2);">กรอกแล้ว 0%</div>
+    </div>
     <div class="flex items-center gap-2">
       <!-- Step 1 -->
       <div class="flex flex-col items-center">
@@ -296,13 +443,13 @@
   <form id="main-form" onsubmit="handleSubmit(event)" novalidate>
 
     <!-- ── Section 1: ข้อมูลส่วนตัว ── -->
-    <div class="glass rounded-2xl p-6 mb-5 shadow-sm card-in" id="sec1">
+    <div class="glass rounded-2xl p-6 mb-5 shadow-sm card-in form-card" id="sec1">
       <div class="flex items-center gap-2.5 mb-5">
-        <div class="section-badge bg-indigo-100">
-          <i data-lucide="user" class="w-4 h-4 text-indigo-600"></i>
+        <div class="section-badge" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);">
+          <i data-lucide="user" class="w-4 h-4" style="color:white;"></i>
         </div>
         <div>
-          <h2 class="font-bold text-slate-800 text-sm">ข้อมูลส่วนตัว</h2>
+          <h2 class="font-bold text-sm section-title-grad">ข้อมูลส่วนตัว</h2>
           <p class="text-xs text-slate-400">Personal Information</p>
         </div>
       </div>
@@ -352,14 +499,22 @@
       </div>
     </div>
 
+    <!-- Wave 1→2 -->
+    <div class="wave-sep" style="margin:-10px 0 -10px;">
+      <svg viewBox="0 0 800 30" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="height:30px;">
+        <path d="M0,15 C133,30 267,0 400,15 C533,30 667,0 800,15 L800,30 L0,30 Z" fill="rgba(37,99,235,0.06)"/>
+        <path d="M0,20 C133,8 267,28 400,20 C533,12 667,28 800,20 L800,30 L0,30 Z" fill="rgba(124,58,237,0.04)"/>
+      </svg>
+    </div>
+
     <!-- ── Section 2: ข้อมูลกิจกรรม ── -->
-    <div class="glass rounded-2xl p-6 mb-5 shadow-sm card-in" id="sec2" style="transition-delay:.08s">
+    <div class="glass rounded-2xl p-6 mb-5 shadow-sm card-in form-card" id="sec2" style="transition-delay:.08s">
       <div class="flex items-center gap-2.5 mb-5">
-        <div class="section-badge bg-rose-100">
-          <i data-lucide="calendar" class="w-4 h-4 text-rose-500"></i>
+        <div class="section-badge" style="background:linear-gradient(135deg,#7c3aed,#2563eb);">
+          <i data-lucide="calendar" class="w-4 h-4" style="color:white;"></i>
         </div>
         <div>
-          <h2 class="font-bold text-slate-800 text-sm">ข้อมูลกิจกรรม</h2>
+          <h2 class="font-bold text-sm section-title-grad">ข้อมูลกิจกรรม</h2>
           <p class="text-xs text-slate-400">Activity Information</p>
         </div>
       </div>
@@ -411,14 +566,22 @@
       </div>
     </div>
 
+    <!-- Wave 2→3 -->
+    <div class="wave-sep" style="margin:-10px 0 -10px;">
+      <svg viewBox="0 0 800 30" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="height:30px;">
+        <path d="M0,10 C200,28 400,2 600,18 C700,24 750,8 800,15 L800,30 L0,30 Z" fill="rgba(14,165,233,0.06)"/>
+        <path d="M0,22 C150,10 350,26 550,14 C650,8 730,22 800,18 L800,30 L0,30 Z" fill="rgba(37,99,235,0.04)"/>
+      </svg>
+    </div>
+
     <!-- ── Section 3: หลักฐานภาพ ── -->
-    <div class="glass rounded-2xl p-6 mb-6 shadow-sm card-in" id="sec3" style="transition-delay:.16s">
+    <div class="glass rounded-2xl p-6 mb-6 shadow-sm card-in form-card" id="sec3" style="transition-delay:.16s">
       <div class="flex items-center gap-2.5 mb-5">
-        <div class="section-badge bg-amber-100">
-          <i data-lucide="image" class="w-4 h-4 text-amber-500"></i>
+        <div class="section-badge" style="background:linear-gradient(135deg,#0ea5e9,#2563eb);">
+          <i data-lucide="image" class="w-4 h-4" style="color:white;"></i>
         </div>
         <div>
-          <h2 class="font-bold text-slate-800 text-sm">หลักฐานภาพ <span class="text-xs font-normal text-slate-400">(ไม่บังคับ)</span></h2>
+          <h2 class="font-bold text-sm section-title-grad">หลักฐานภาพ <span class="text-xs font-normal text-slate-400" style="-webkit-text-fill-color:#94a3b8;">(ไม่บังคับ)</span></h2>
           <p class="text-xs text-slate-400">Photo Evidence</p>
         </div>
       </div>
@@ -457,15 +620,18 @@
 
 <!-- ── SUCCESS SCREEN ──────────────────────────────────────── -->
 <div id="success-screen" class="hidden fixed inset-0 mesh-bg flex items-center justify-center z-30 px-4">
-  <div id="confetti-container" class="fixed inset-0 pointer-events-none overflow-hidden"></div>
-  <div class="glass rounded-3xl p-10 text-center max-w-sm w-full shadow-2xl" style="animation:fadeUp .5s cubic-bezier(.16,1,.3,1) both">
-    <div class="w-20 h-20 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg success-icon">
-      <i data-lucide="check" class="w-10 h-10 text-white"></i>
+  <div id="confetti-container" class="fixed inset-0 pointer-events-none overflow-hidden z-40"></div>
+  <div id="shark-success-container" class="fixed inset-0 pointer-events-none overflow-hidden z-40"></div>
+  <div class="glass rounded-3xl p-10 text-center max-w-sm w-full shadow-2xl" style="animation:successBounceIn .6s cubic-bezier(.16,1,.3,1) both;position:relative;z-index:41;">
+    <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-5 shadow-xl success-icon" style="background:linear-gradient(135deg,#2563eb,#7c3aed,#0ea5e9);">
+      <i data-lucide="check" class="w-12 h-12 text-white"></i>
     </div>
-    <h2 class="text-2xl font-bold text-slate-800 mb-1">ส่งข้อมูลสำเร็จ! 🎉</h2>
-    <p class="text-slate-500 text-sm mb-7">ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว</p>
+    <div style="font-size:32px;margin-bottom:8px;animation:successEmoji .6s .3s cubic-bezier(.16,1,.3,1) both;">🦈🎉✨</div>
+    <h2 class="text-2xl font-bold mb-1" style="background:linear-gradient(135deg,#2563eb,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">ส่งข้อมูลสำเร็จ!</h2>
+    <p class="text-slate-500 text-sm mb-7">ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว 🌊</p>
     <button onclick="resetAndShowForm()"
-      class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-bold hover:opacity-90 transition shadow-md">
+      class="w-full py-3 rounded-xl text-white font-bold hover:opacity-90 transition shadow-md"
+      style="background:linear-gradient(135deg,#2563eb,#7c3aed);">
       ส่งข้อมูลชุดใหม่
     </button>
   </div>
@@ -514,7 +680,14 @@
 <style>
   @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
   @keyframes floatUp{from{transform:translateY(0);}to{transform:translateY(-6px);}}
+  @keyframes sharkCelebrate{
+    0%{left:-80px;transform:scaleX(1) rotate(-10deg);}
+    40%{left:50%;transform:scaleX(1) rotate(5deg) scale(1.3);}
+    60%{left:50%;transform:scaleX(-1) rotate(-5deg) scale(1.3);}
+    100%{left:calc(100% + 80px);transform:scaleX(-1) rotate(10deg);}
+  }
 </style>
+<canvas id="bubble-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:0.4;"></canvas>
 
 <script>
 // ─── CONFIG (จาก config.js) ──────────────────────────────────────
@@ -665,24 +838,52 @@ function onMajorChange() {
 
 // ─── CONFETTI ───────────────────────────────────────────────────
 function launchConfetti() {
-  const colors = ['#4f46e5','#7c3aed','#f43f5e','#10b981','#f59e0b','#06b6d4'];
+  const colors = ['#2563eb','#7c3aed','#0ea5e9','#db2777','#10b981','#f59e0b'];
   const container = document.getElementById('confetti-container');
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 120; i++) {
     const piece = document.createElement('div');
     piece.className = 'confetti-piece';
     const color = colors[Math.floor(Math.random() * colors.length)];
     const left  = Math.random() * 100;
-    const delay = Math.random() * 0.8;
-    const size  = 6 + Math.random() * 8;
-    const shape = Math.random() > 0.5 ? '50%' : '2px';
+    const delay = Math.random() * 1.2;
+    const size  = 5 + Math.random() * 10;
+    const shape = Math.random() > 0.5 ? '50%' : Math.random() > 0.5 ? '2px' : '0%';
     piece.style.cssText = `
       left:${left}%;width:${size}px;height:${size}px;
       background:${color};border-radius:${shape};
-      animation-delay:${delay}s;animation-duration:${0.9+Math.random()*0.6}s;
+      animation-delay:${delay}s;animation-duration:${1+Math.random()*0.8}s;
     `;
     container.appendChild(piece);
   }
-  setTimeout(() => { if(container) container.innerHTML = ''; }, 2500);
+  // 🦈 ว่ายฉลองครั้งเดียว
+  const sc = document.getElementById('shark-success-container');
+  if(sc){
+    const s = document.createElement('div');
+    s.textContent = '🦈';
+    s.style.cssText = 'position:absolute;bottom:30%;left:-80px;font-size:48px;animation:sharkCelebrate 2.5s ease-in-out forwards;';
+    sc.appendChild(s);
+    setTimeout(()=>sc.innerHTML='', 3000);
+  }
+  setTimeout(() => { if(container) container.innerHTML = ''; }, 3500);
+}
+
+// ─── FIELD COUNTER ──────────────────────────────────────────────
+function updateFillBadge() {
+  const required = ['student_name','student_id','phone','course_code','teacher_name','section','date','time_start','time_end','location'];
+  let filled = 0;
+  required.forEach(id => { const el = document.getElementById(id); if(el && el.value.trim()) filled++; });
+  if(document.querySelector('input[name="major"]:checked')) filled++;
+  const actVal = document.getElementById('activity_name_val');
+  if(actVal && actVal.value.trim()) filled++;
+  const total = required.length + 2;
+  const pct = Math.round((filled/total)*100);
+  const badge = document.getElementById('fill-badge');
+  if(!badge) return;
+  badge.textContent = `กรอกแล้ว ${pct}%`;
+  const hue = pct < 40 ? '#94a3b8' : pct < 80 ? '#2563eb' : '#10b981';
+  badge.style.color = hue;
+  badge.style.borderColor = hue+'44';
+  badge.style.background = pct === 100 ? 'linear-gradient(135deg,rgba(16,185,129,0.12),rgba(37,99,235,0.08))' : 'linear-gradient(135deg,rgba(37,99,235,0.1),rgba(124,58,237,0.08))';
 }
 
 // ─── SUBMIT ─────────────────────────────────────────────────────
@@ -886,15 +1087,71 @@ function checkPin() {
   }
 }
 
+// ─── CURSOR SPARKLE TRAIL ───────────────────────────────────────
+document.addEventListener('mousemove', e => {
+  const spark = document.createElement('div');
+  spark.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:6px;height:6px;border-radius:50%;background:${['#2563eb','#7c3aed','#0ea5e9','#db2777'][Math.floor(Math.random()*4)]};pointer-events:none;z-index:9999;transform:translate(-50%,-50%);animation:sparkFade .6s forwards;`;
+  document.body.appendChild(spark);
+  setTimeout(() => spark.remove(), 600);
+});
+
+
+// ─── FLOATING BUBBLES CANVAS ────────────────────────────────────
+(function(){
+  const c = document.getElementById('bubble-canvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  let W, H, bubbles = [];
+  function resize(){ W = c.width = innerWidth; H = c.height = innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  const colors = ['rgba(37,99,235,0.3)','rgba(124,58,237,0.25)','rgba(14,165,233,0.3)','rgba(219,39,119,0.15)'];
+  for(let i=0;i<18;i++) bubbles.push({
+    x:Math.random()*1000, y:Math.random()*800, r:Math.random()*18+6,
+    vx:(Math.random()-.5)*.4, vy:-(Math.random()*.5+.2),
+    color:colors[Math.floor(Math.random()*colors.length)]
+  });
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    bubbles.forEach(b=>{
+      ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+      ctx.fillStyle=b.color; ctx.fill();
+      b.x+=b.vx; b.y+=b.vy;
+      if(b.y < -b.r){ b.y=H+b.r; b.x=Math.random()*W; }
+      if(b.x<-b.r) b.x=W+b.r;
+      if(b.x>W+b.r) b.x=-b.r;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ─── 3D TILT ON CARDS ───────────────────────────────────────────
+document.querySelectorAll('.card-in').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    card.style.transform = `perspective(600px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateY(${card.classList.contains('visible')?'0':'24px'})`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = card.classList.contains('visible') ? 'perspective(600px) rotateY(0) rotateX(0) translateY(0)' : '';
+  });
+});
+
 // ─── INIT ───────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('date').value = new Date().toISOString().split('T')[0];
   renderActivityOptions();
-  syncActivitiesFromSupabase(); // ดึงรายการกิจกรรมจาก Supabase (ถ้ามี)
+  syncActivitiesFromSupabase();
   lucide.createIcons();
   initReveal();
   window.addEventListener('scroll', trackScrollStep, { passive: true });
   updateStep(1);
+  updateFillBadge();
+  // counter badge: อัปเดตทุกครั้งที่ user กรอก
+  document.getElementById('main-form').addEventListener('input', updateFillBadge);
+  document.getElementById('main-form').addEventListener('change', updateFillBadge);
 });
 </script>
 </body>
