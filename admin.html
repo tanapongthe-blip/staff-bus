@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin — ระบบสตาฟ</title>
+  <title>Staff Activities</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -311,14 +311,14 @@
           <div class="metric-icon" style="background:#fef3c7;"><i data-lucide="building-2" style="width:18px;height:18px;color:#d97706;"></i></div>
         </div>
         <div class="metric-num" id="m-maj">0</div>
-        <div class="metric-label">สาขาที่เข้าร่วม</div>
+        <div class="metric-label">สาขา</div>
       </div>
       <div class="metric-card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
           <div class="metric-icon" style="background:#fce7f3;"><i data-lucide="book-open" style="width:18px;height:18px;color:#be185d;"></i></div>
         </div>
         <div class="metric-num" id="m-crs">0</div>
-        <div class="metric-label">วิชาที่ร่วม</div>
+        <div class="metric-label">วิชา</div>
       </div>
     </div>
 
@@ -1172,7 +1172,7 @@ function closeConfirm(){
 async function clearAll(){
   const pin = document.getElementById('clear-pin').value;
   const err = document.getElementById('clear-pin-err');
-  if(pin !== ADMIN_PIN){
+  if(pin !== CLEAR_PIN){
     err.textContent = 'PIN ไม่ถูกต้อง';
     const inp = document.getElementById('clear-pin');
     inp.style.borderColor='#ef4444';
